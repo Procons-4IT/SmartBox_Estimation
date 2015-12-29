@@ -1,0 +1,20 @@
+<Application>
+  <Menus>
+    <action type="add">
+      <Menu Checked="0" Enabled="1" FatherUID="43525" Image="" Position="2" String="Project Estimations"
+				Type="2" UniqueID="Menu_P01"></Menu>
+      <!--<Menu Checked="0" Enabled="1" FatherUID="Menu_P01" Image="" Position="0" String="Approval Template"
+     Type="1" UniqueID="Menu_P012"></Menu>-->
+      <Menu Checked="0" Enabled="1" FatherUID="Menu_P01" Image="" Position="1" String="Sub-Project"
+      Type="1" UniqueID="Menu_P02"></Menu>
+      <Menu Checked="0" Enabled="1" FatherUID="Menu_P01" Image="" Position="2" String="Project Phase"
+      Type="1" UniqueID="Menu_P03"></Menu>
+      <Menu Checked="0" Enabled="1" FatherUID="Menu_P01" Image="" Position="3" String="Estimation"
+     Type="1" UniqueID="Menu_P04"></Menu>
+      <!--<Menu Checked="0" Enabled="1" FatherUID="Menu_P01" Image="" Position="4" String="Estimation - Approval"
+ Type="1" UniqueID="Menu_P05"></Menu>-->
+
+
+    </action>
+  </Menus>
+</Application>
