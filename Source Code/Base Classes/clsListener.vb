@@ -237,12 +237,7 @@ Public Class clsListener
                             oItemObject.FrmUID = FormUID
                             _Collection.Add(FormUID, oItemObject)
                         End If
-                        'Case frm_BoM_Wizard_PO
-                        '    If Not _Collection.ContainsKey(FormUID) Then
-                        '        oItemObject = New clsBoMWizard_PO
-                        '        oItemObject.FrmUID = FormUID
-                        '        _Collection.Add(FormUID, oItemObject)
-                        '    End If
+                       
                     Case frm_BoM_Template
                         If Not _Collection.ContainsKey(FormUID) Then
                             oItemObject = New clsBoMApprovalTemplate
@@ -262,18 +257,6 @@ Public Class clsListener
                             oItemObject.FrmUID = FormUID
                             _Collection.Add(FormUID, oItemObject)
                         End If
-                        'Case frm_BoM
-                        '    If Not _Collection.ContainsKey(FormUID) Then
-                        '        oItemObject = New clsBoM
-                        '        oItemObject.FrmUID = FormUID
-                        '        _Collection.Add(FormUID, oItemObject)
-                        '    End If
-                        'Case frm_GoodsIssue, frm_PurchaseRequest
-                        '    If Not _Collection.ContainsKey(FormUID) Then
-                        '        oItemObject = New clsDocuments
-                        '        oItemObject.FrmUID = FormUID
-                        '        _Collection.Add(FormUID, oItemObject)
-                        '    End If
                 End Select
             End If
 
