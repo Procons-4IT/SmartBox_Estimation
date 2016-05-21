@@ -47,7 +47,7 @@ Public Class clsBoMEstimation1
             End If
             addChooseFromListConditions(oForm)
             oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            oRecordSet.DoQuery("select series,SeriesName  from NNM1 where ObjectCode='Z_OQUT'")
+            oRecordSet.DoQuery("Select ""series"",""SeriesName""  from NNM1 where ""ObjectCode""='Z_OQUT'")
             oCombobox = oForm.Items.Item("20").Specific
             For introw As Integer = 0 To oRecordSet.RecordCount - 1
                 oCombobox.ValidValues.Add(oRecordSet.Fields.Item(0).Value, oRecordSet.Fields.Item(1).Value)
@@ -55,7 +55,7 @@ Public Class clsBoMEstimation1
             Next
             oCombobox.ExpandType = SAPbouiCOM.BoExpandType.et_DescriptionOnly
 
-            oRecordSet.DoQuery("select SlpCode,SlpName  from OSLP order by SlpCode")
+            oRecordSet.DoQuery("select ""SlpCode"",""SlpName""  from OSLP order by ""SlpCode""")
             oCombobox = oForm.Items.Item("38").Specific
             For introw As Integer = 0 To oRecordSet.RecordCount - 1
                 oCombobox.ValidValues.Add(oRecordSet.Fields.Item(0).Value, oRecordSet.Fields.Item(1).Value)
@@ -94,7 +94,7 @@ Public Class clsBoMEstimation1
             End If
             addChooseFromListConditions(oForm)
             oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            oRecordSet.DoQuery("select series,SeriesName  from NNM1 where ObjectCode='Z_OQUT'")
+            oRecordSet.DoQuery("Select ""series"",""SeriesName""  from NNM1 where ""ObjectCode""='Z_OQUT'")
             oCombobox = oForm.Items.Item("20").Specific
             For introw As Integer = 0 To oRecordSet.RecordCount - 1
                 oCombobox.ValidValues.Add(oRecordSet.Fields.Item(0).Value, oRecordSet.Fields.Item(1).Value)
@@ -102,7 +102,7 @@ Public Class clsBoMEstimation1
             Next
             oCombobox.ExpandType = SAPbouiCOM.BoExpandType.et_DescriptionOnly
 
-            oRecordSet.DoQuery("select SlpCode,SlpName  from OSLP order by SlpCode")
+            oRecordSet.DoQuery("select ""SlpCode"",""SlpName""  from OSLP order by ""SlpCode""")
             oCombobox = oForm.Items.Item("38").Specific
             For introw As Integer = 0 To oRecordSet.RecordCount - 1
                 oCombobox.ValidValues.Add(oRecordSet.Fields.Item(0).Value, oRecordSet.Fields.Item(1).Value)
@@ -131,11 +131,15 @@ Public Class clsBoMEstimation1
         Dim oTest As SAPbobsCOM.Recordset
         oTest = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
         Dim dblPrice, dblQuanity As Double
+        If blnIsHana Then
+            oTest.DoQuery("Select IFNull(Sum(""Price"" * ""Quantity""),0) from ITT1 where ""Father""='" & aCode & "'")
+        Else
+            oTest.DoQuery("Select isnull(Sum(Price * Quantity),0) from ITT1 where Father='" & aCode & "'")
+        End If
 
-        oTest.DoQuery("Select isnull(Sum(Price * Quantity),0) from ITT1 where Father='" & aCode & "'")
         dblPrice = oTest.Fields.Item(0).Value
 
-        oTest.DoQuery("Select Qauntity from OITT where Code='" & aCode & "'")
+        oTest.DoQuery("Select ""Quantity"" from OITT where ""Code""='" & aCode & "'")
         dblQuanity = oTest.Fields.Item(0).Value
         dblPrice = dblPrice / dblQuanity
 
@@ -164,8 +168,8 @@ Public Class clsBoMEstimation1
             oCons = oCFL.GetConditions()
             oCon = oCons.Add()
             oCon.Alias = "CardType"
-            oCon.Operation = SAPbouiCOM.BoConditionOperation.co_EQUAL
-            oCon.CondVal = "C"
+            oCon.Operation = SAPbouiCOM.BoConditionOperation.co_NOT_EQUAL
+            oCon.CondVal = "S"
             oCFL.SetConditions(oCons)
 
 
@@ -206,7 +210,7 @@ Public Class clsBoMEstimation1
         otemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
         otemp1 = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
         oUserTable = oApplication.Company.UserTables.Item("Z_OITT1")
-        Dim sItemCode As String = "SELECT U_Z_ItemCode  FROM [dbo].[@Z_OQUT]  T0 inner join [dbo].[@Z_QUT1]  T1 on T1.DocEntry=T0.DocEntry where T0.DocNum=" & ItemCode
+        Dim sItemCode As String = "SELECT ""U_Z_ItemCode""  FROM ""@Z_OQUT""  T0 inner join ""@Z_QUT1""  T1 on T1.""DocEntry""=T0.""DocEntry"" where T0.""DocNum""=" & ItemCode
 
         If aChoice = "Add" Then
             strCode = oApplication.Utilities.getMaxCode("@Z_OITT1", "Code")
@@ -215,7 +219,7 @@ Public Class clsBoMEstimation1
             oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Material"
             'otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
-            otemp1.DoQuery("Select Sum(U_AVGCOST),AVG(U_MARKUP) from ITT1 T0  Inner Join  OITM T1 on T1.ItemCode=T0.Code  INNER JOIN OITB T2 ON T1.[ItmsGrpCod] = T2.[ItmsGrpCod] where Father in ( " & sItemCode & ") and Type=4 and T1.ItmsGrpCod<>112")
+            otemp1.DoQuery("Select Sum(""U_AVGCOST""),AVG(""U_MARKUP"") from ITT1 T0  Inner Join  OITM T1 on T1.""ItemCode""=T0.""Code""  INNER JOIN OITB T2 ON T1.""ItmsGrpCod"" = T2.""ItmsGrpCod"" where ""Father"" in ( " & sItemCode & ") and ""Type""=4 and T1.""ItmsGrpCod""<>112")
 
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
             oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item(1).Value
@@ -229,8 +233,8 @@ Public Class clsBoMEstimation1
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Labor"
             Dim intResourceCode As Integer
             Dim strTemp As String
-            strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Labour%'"
-            strTemp = "SELECT Sum(U_AVGCOST) ,AVG(U_MARKUP)  FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father in ( " & sItemCode & ") and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+            strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Labour%'"
+            strTemp = "SELECT Sum(""U_AVGCOST"") ,AVG(""U_MARKUP"")  FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode""=T0.""Code"" where ""Father"" in ( " & sItemCode & ") and T0.""Type""=290 and T1.""ResGrpCod"" =(" & strTemp & ")"
             ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
             otemp1.DoQuery(strTemp)
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
@@ -244,8 +248,8 @@ Public Class clsBoMEstimation1
             oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Machine"
 
-            strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Machine%'"
-            strTemp = "SELECT Sum(U_AVGCOST),Avg(U_MARKUP)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father in ( " & sItemCode & ") and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+            strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Machine%'"
+            strTemp = "SELECT Sum(""U_AVGCOST""),Avg(""U_MARKUP"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode""=T0.""Code"" where ""Father"" in ( " & sItemCode & ") and T0.""Type""=290 and T1.""ResGrpCod"" =(" & strTemp & ")"
             ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
             otemp1.DoQuery(strTemp)
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
@@ -258,8 +262,8 @@ Public Class clsBoMEstimation1
             oUserTable.Name = strCode
             oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "OutSource"
-            strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'OutSource%'"
-            strTemp = "SELECT Sum(U_AVGCOST),AVG(U_MARKUP)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where  Father in ( " & sItemCode & ") and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+            strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'OutSource%'"
+            strTemp = "SELECT Sum(""U_AVGCOST""),AVG(""U_MARKUP"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode""=T0.""Code"" where  ""Father"" in ( " & sItemCode & ") and T0.""Type""=290 and T1.""ResGrpCod"" =(" & strTemp & ")"
             ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
             otemp1.DoQuery(strTemp)
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
@@ -272,7 +276,7 @@ Public Class clsBoMEstimation1
             oUserTable.Name = strCode
             oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "LED Material"
-            otemp1.DoQuery("Select Sum(U_AVGCOST),AVG(U_MARKUP) from ITT1 T0  Inner Join  OITM T1 on T1.ItemCode=T0.Code  INNER JOIN OITB T2 ON T1.[ItmsGrpCod] = T2.[ItmsGrpCod] where Father in ( " & sItemCode & ") and Type=4 and T1.ItmsGrpCod=112")
+            otemp1.DoQuery("Select Sum(""U_AVGCOST""),AVG(""U_MARKUP"") from ITT1 T0  Inner Join  OITM T1 on T1.""ItemCode""=T0.""Code""  INNER JOIN OITB T2 ON T1.""ItmsGrpCod"" = T2.""ItmsGrpCod"" where ""Father"" in ( " & sItemCode & ") and ""Type""=4 and T1.""ItmsGrpCod""=112")
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
             oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item(1).Value
             oUserTable.UserFields.Fields.Item("U_Z_Price").Value = otemp1.Fields.Item(0).Value
@@ -289,11 +293,11 @@ Public Class clsBoMEstimation1
         otemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
         otemp1 = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
         oUserTable = oApplication.Company.UserTables.Item("Z_OITT1")
-        Dim sItemCode As String = "SELECT U_Z_ItemCode  FROM [dbo].[@Z_OQUT]  T0 inner join [dbo].[@Z_QUT1]  T1 on T1.DocEntry=T0.DocEntry where T0.DocNum=" & ItemCode
+        Dim sItemCode As String = "SELECT ""U_Z_ItemCode""  FROM ""@Z_OQUT""  T0 inner join ""@Z_QUT1""  T1 on T1.""DocEntry""=T0.""DocEntry"" where T0.""DocNum""=" & ItemCode
 
         Dim dblAvgCost As Double
         If aChoice = "Update" Then
-            otemp1.DoQuery("Select Code,* from [@Z_OITT1] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='Material'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT1"" where ""U_Z_ItemCode""='" & ItemCode & "' and ""U_Z_Type""='Material'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
@@ -301,7 +305,7 @@ Public Class clsBoMEstimation1
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Material"
 
-                otemp1.DoQuery("Select Sum(U_AVGCOST),AVG(U_MARKUP) from ITT1 T0  Inner Join  OITM T1 on T1.ItemCode=T0.Code  INNER JOIN OITB T2 ON T1.[ItmsGrpCod] = T2.[ItmsGrpCod] where Father in ( " & sItemCode & ") and Type=4 and T1.ItmsGrpCod<>112")
+                otemp1.DoQuery("Select Sum(""U_AVGCOST""),AVG(""U_MARKUP"") from ITT1 T0  Inner Join  OITM T1 on T1.""ItemCode""=T0.""Code""  INNER JOIN OITB T2 ON T1.""ItmsGrpCod"" = T2.""ItmsGrpCod"" where ""Father"" in ( " & sItemCode & ") and ""Type""=4 and T1.""ItmsGrpCod""<>112")
                 dblAvgCost = otemp1.Fields.Item(0).Value
                 oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item(1).Value
                 oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = dblAvgCost ' otemp1.Fields.Item(0).Value
@@ -310,15 +314,15 @@ Public Class clsBoMEstimation1
             Dim intResourceCode As Integer
             Dim strTemp As String
 
-            otemp1.DoQuery("Select Code,* from [@Z_OITT1] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='Labor'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT1"" where ""U_Z_ItemCode""='" & ItemCode & "' and ""U_Z_Type""='Labor'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
                 oUserTable.Name = strCode
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Labor"
-                strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Labour%'"
-                strTemp = "SELECT Sum(U_AVGCOST),AVG(U_MARKUP)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father in ( " & sItemCode & ") and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+                strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Labour%'"
+                strTemp = "SELECT Sum(""U_AVGCOST""),AVG(""U_MARKUP"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode""=T0.""Code"" where ""Father"" in ( " & sItemCode & ") and T0.""Type""=290 and T1.""ResGrpCod"" =(" & strTemp & ")"
                 otemp1.DoQuery(strTemp)
                 dblAvgCost = otemp1.Fields.Item(0).Value
 
@@ -327,15 +331,15 @@ Public Class clsBoMEstimation1
                 oUserTable.Update()
             End If
 
-            otemp1.DoQuery("Select Code,* from [@Z_OITT1] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='Machine'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT1"" where ""U_Z_ItemCode""='" & ItemCode & "' and ""U_Z_Type""='Machine'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
                 oUserTable.Name = strCode
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Machine"
-                strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Machine%'"
-                strTemp = "SELECT Sum(U_AVGCOST),AVG(U_MARKUP)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where  Father in ( " & sItemCode & ") and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+                strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Machine%'"
+                strTemp = "SELECT Sum(""U_AVGCOST""),AVG(""U_MARKUP"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode""=T0.""Code"" where  ""Father"" in ( " & sItemCode & ") and T0.""Type""=290 and T1.""ResGrpCod"" =(" & strTemp & ")"
                 ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
                 otemp1.DoQuery(strTemp)
                 dblAvgCost = otemp1.Fields.Item(0).Value
@@ -345,7 +349,7 @@ Public Class clsBoMEstimation1
                 oUserTable.Update()
             End If
 
-            otemp1.DoQuery("Select Code,* from [@Z_OITT1] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='OutSource'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT1"" where ""U_Z_ItemCode""='" & ItemCode & "' and ""U_Z_Type""='OutSource'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
@@ -353,8 +357,8 @@ Public Class clsBoMEstimation1
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "OutSource"
                 '   oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item("U_Z_Markup").Value
-                strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'OutSource%'"
-                strTemp = "SELECT Sum(U_AVGCOST),AVG(U_MARKUP)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father in ( " & sItemCode & ")  and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+                strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'OutSource%'"
+                strTemp = "SELECT Sum(""U_AVGCOST""),AVG(""U_MARKUP"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode""=T0.""Code"" where ""Father"" in ( " & sItemCode & ")  and T0.""Type""=290 and T1.""ResGrpCod"" =(" & strTemp & ")"
                 ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
                 otemp1.DoQuery(strTemp)
                 dblAvgCost = otemp1.Fields.Item(0).Value
@@ -362,7 +366,7 @@ Public Class clsBoMEstimation1
                 oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = dblAvgCost
                 oUserTable.Update()
             End If
-            otemp1.DoQuery("Select Code,* from [@Z_OITT1] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='LED Material'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT1"" where ""U_Z_ItemCode""='" & ItemCode & "' and ""U_Z_Type""='LED Material'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
@@ -370,7 +374,7 @@ Public Class clsBoMEstimation1
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "LED Material"
                 ' oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item("U_Z_Markup").Value
-                otemp1.DoQuery("Select Sum(U_AVGCOST),AVG(U_MARKUP) from ITT1 T0  Inner Join  OITM T1 on T1.ItemCode=T0.Code  INNER JOIN OITB T2 ON T1.[ItmsGrpCod] = T2.[ItmsGrpCod] where Father in ( " & sItemCode & ") and Type=4 and T1.ItmsGrpCod=112")
+                otemp1.DoQuery("Select Sum(""U_AVGCOST""),AVG(""U_MARKUP"") from ITT1 T0  Inner Join  OITM T1 on T1.""ItemCode""=T0.""Code""  INNER JOIN OITB T2 ON T1.""ItmsGrpCod"" = T2.""ItmsGrpCod"" where ""Father"" in ( " & sItemCode & ") and ""Type""=4 and T1.""ItmsGrpCod""=112")
                 oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
                 dblAvgCost = otemp1.Fields.Item(0).Value
                 oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = dblAvgCost
@@ -432,7 +436,7 @@ Public Class clsBoMEstimation1
                                 oForm = oApplication.SBO_Application.Forms.Item(FormUID)
                                 If pVal.ItemUID = "20" And oForm.Mode = SAPbouiCOM.BoFormMode.fm_ADD_MODE Then
                                     oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-                                    oRecordSet.DoQuery("select series,SeriesName,NextNumber   from NNM1 where ObjectCode='Z_OQUT'")
+                                    oRecordSet.DoQuery("select ""series"",""SeriesName"",""NextNumber""   from NNM1 where ""ObjectCode""='Z_OQUT'")
                                     oApplication.Utilities.setEdittextvalue(oForm, "4", oRecordSet.Fields.Item(2).Value)
                                 End If
                             Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
@@ -656,7 +660,7 @@ Public Class clsBoMEstimation1
                 otest = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
                 If stXML <> "" Then
 
-                    otest.DoQuery("select * from [@Z_OQUT]  where DocEntry=" & stXML)
+                    otest.DoQuery("select * from ""@Z_OQUT""  where ""DocEntry""=" & stXML)
                     If otest.RecordCount > 0 Then
                         If otest.Fields.Item("U_Z_DocStatus").Value = "C" Then
                             Dim intTempID As String = GetTemplateID(oForm, "B")
@@ -665,7 +669,7 @@ Public Class clsBoMEstimation1
                                 ' InitialMessage("Estimation approval", otest.Fields.Item("DocEntry").Value, "P", intTempID, "B")
                             Else
                                 'UpdateApprovalRequired("@Z_OQUT", "DocEntry", otest.Fields.Item("DocEntry").Value, "N", intTempID)
-                                strQuery = "Update [@Z_OQUT] set U_Z_AppStatus='A' where DocEntry='" & otest.Fields.Item("DocEntry").Value & "'"
+                                strQuery = "Update ""@Z_OQUT"" set ""U_Z_AppStatus""='A' where ""DocEntry""='" & otest.Fields.Item("DocEntry").Value & "'"
                                 otest.DoQuery(strQuery)
                             End If
                         End If
@@ -682,8 +686,8 @@ Public Class clsBoMEstimation1
         Try
             Dim strQuery As String
             oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            strQuery = "Update [" & strTable & "] set U_Z_AppRequired='" & ReqValue & "',U_Z_AppReqDate=getdate()"
-            strQuery += "  where " & sColumn & "='" & StrCode & "'"
+            strQuery = "Update """ & strTable & """ set ""U_Z_AppRequired""='" & ReqValue & "',""U_Z_AppReqDate""=getdate()"
+            strQuery += "  where """ & sColumn & """='" & StrCode & "'"
             oRecordSet.DoQuery(strQuery)
         Catch ex As Exception
             MsgBox(oApplication.Company.GetLastErrorDescription)
@@ -736,7 +740,7 @@ Public Class clsBoMEstimation1
                 If intTempID <> "0" Then
                     InitialMessage("estimation approval", oApplication.Utilities.getEditTextvalue(oForm, "4"), "P", intTempID, "B")
                 Else
-                    strQuery = "Update [@Z_OQUT] set U_Z_AppStatus='A' where DocEntry='" & oApplication.Utilities.getEditTextvalue(oForm, "4") & "'"
+                    strQuery = "Update ""@Z_OQUT"" set ""U_Z_AppStatus""='A' where ""DocEntry""='" & oApplication.Utilities.getEditTextvalue(oForm, "4") & "'"
                     oRecordSet.DoQuery(strQuery)
                 End If
             End If
@@ -753,7 +757,12 @@ Public Class clsBoMEstimation1
             Dim strQuery As String = ""
             Dim Status As String = ""
             oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            strQuery = "Select * from ""@P_OAPPT"" T0 left join ""@P_APPT1"" T1 on T0.""DocEntry""=T1.""DocEntry"" where isnull(T0.""U_Z_Active"",'N')='Y' and T0.""U_Z_DocType""='" & DocType.ToString() & "' and T1.""U_Z_OUser""='" & oApplication.Company.UserName & "' "
+            If blnIsHana Then
+                strQuery = "Select * from ""@P_OAPPT"" T0 left join ""@P_APPT1"" T1 on T0.""DocEntry""=T1.""DocEntry"" where IfNull(T0.""U_Z_Active"",'N')='Y' and T0.""U_Z_DocType""='" & DocType.ToString() & "' and T1.""U_Z_OUser""='" & oApplication.Company.UserName & "' "
+            Else
+                strQuery = "Select * from ""@P_OAPPT"" T0 left join ""@P_APPT1"" T1 on T0.""DocEntry""=T1.""DocEntry"" where isnull(T0.""U_Z_Active"",'N')='Y' and T0.""U_Z_DocType""='" & DocType.ToString() & "' and T1.""U_Z_OUser""='" & oApplication.Company.UserName & "' "
+            End If
+
             oRecordSet.DoQuery(strQuery)
             If oRecordSet.RecordCount > 0 Then
                 Status = oRecordSet.Fields.Item("DocEntry").Value
@@ -786,7 +795,12 @@ Public Class clsBoMEstimation1
             oMessage = oMessageService.GetDataInterface(SAPbobsCOM.MessagesServiceDataInterfaces.msdiMessage)
             oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
             oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            strQuery = "Select Top 1 U_Z_AUser From [@P_APPT2] Where DocEntry = '" + strTemplateNo + "'  and isnull(U_Z_AMan,'')='Y' Order By LineId Asc "
+            If blnIsHana Then
+                strQuery = "Select Top 1 ""U_Z_AUser"" From ""@P_APPT2"" Where ""DocEntry"" = '" + strTemplateNo + "'  and IFNull(""U_Z_AMan"",'')='Y' Order By ""LineId"" Asc "
+            Else
+                strQuery = "Select Top 1 U_Z_AUser From [@P_APPT2] Where DocEntry = '" + strTemplateNo + "'  and isnull(U_Z_AMan,'')='Y' Order By LineId Asc "
+            End If
+
             oRecordSet.DoQuery(strQuery)
             If Not oRecordSet.EoF Then
                 strMessageUser = oRecordSet.Fields.Item(0).Value
@@ -794,13 +808,13 @@ Public Class clsBoMEstimation1
                 Dim strMessage As String = ""
                 Select Case enDocType
                     Case "B"
-                        strQuery = "Select * from  [@Z_OQUT] where DocEntry='" & strReqNo & "'"
+                        strQuery = "Select * from  ""@Z_OQUT"" where ""DocEntry""='" & strReqNo & "'"
                         oTemp.DoQuery(strQuery)
                         strMessage = " Requested by  :" & oApplication.Company.UserName & ": Documnet Number : " & strReqNo & " and Description :" & oTemp.Fields.Item("U_Z_Desc").Value & ""
                 End Select
                 Select Case enDocType
                     Case "B"
-                        strQuery = "Update [@Z_OQUT] set U_Z_CurApprover='" & strMessageUser & "',U_Z_NxtApprover='" & strMessageUser & "' where DocEntry='" & strReqNo & "'"
+                        strQuery = "Update ""@Z_OQUT"" set ""U_Z_CurApprover""='" & strMessageUser & "',""U_Z_NxtApprover""='" & strMessageUser & "' where ""DocEntry""='" & strReqNo & "'"
                         oTemp.DoQuery(strQuery)
                 End Select
 
@@ -833,7 +847,7 @@ Public Class clsBoMEstimation1
             For i As Integer = 1 To oMatrix.RowCount
                 Dim oRec As SAPbobsCOM.Recordset
                 oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-                Dim strQry = "Select AttachPath From OADP"
+                Dim strQry = "Select ""AttachPath"" From OADP"
                 oRec.DoQuery(strQry)
                 Dim SPath As String = oApplication.Utilities.getMatrixValues(oMatrix, "V_0", i) ' oOfferGrid.DataTable.GetValue("U_Z_Attachment", i).ToString()
                 If SPath = "" Then
@@ -875,7 +889,7 @@ Public Class clsBoMEstimation1
                 Else
                     Dim oRec As SAPbobsCOM.Recordset
                     oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-                    Dim strQry = "Select AttachPath From OADP"
+                    Dim strQry = "Select ""AttachPath"" From OADP"
                     oRec.DoQuery(strQry)
                     Dim SPath As String = oApplication.Utilities.getMatrixValues(oMatrix, "V_0", intRow) ' oOfferGrid.DataTable.GetValue("U_Z_Attachment", i).ToString()
                     If 1 = 2 Then

@@ -42,9 +42,10 @@ Public Class clsAppHisDetails
             aForm.Freeze(True)
             Dim sQuery As String
             oGrid = aForm.Items.Item("3").Specific
-            sQuery = " Select DocEntry,U_Z_DocEntry,U_Z_DocType,U_Z_EmpId,U_Z_EmpName,U_Z_ApproveBy,CreateDate ,CreateTime,UpdateDate,UpdateTime,U_Z_AppStatus,U_Z_Remarks From [@P_APHIS] "
-            sQuery += " Where U_Z_DocType = 'B'"
-            sQuery += " And U_Z_DocEntry = '" + strDocEntry + "'"
+
+            sQuery = " Select ""DocEntry"",""U_Z_DocEntry"",""U_Z_DocType"",""U_Z_EmpId"",""U_Z_EmpName"",""U_Z_ApproveBy"",""CreateDate "",""CreateTime,""UpdateDate"",""UpdateTime"",""U_Z_AppStatus"",""U_Z_Remarks"" From ""@P_APHIS"" "
+            sQuery += " Where ""U_Z_DocType"" = 'B'"
+            sQuery += " And ""U_Z_DocEntry"" = '" + strDocEntry + "'"
             oGrid.DataTable.ExecuteQuery(sQuery)
             formatHistory(aForm)
             assignMatrixLineno(oGrid, aForm)

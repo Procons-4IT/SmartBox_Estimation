@@ -116,7 +116,7 @@
             oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Material"
             'otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
-            otemp1.DoQuery("Select Sum(U_AVGCOST *Quantity), from ITT1 T0  Inner Join  OITM T1 on T1.ItemCode=T0.Code  INNER JOIN OITB T2 ON T1.[ItmsGrpCod] = T2.[ItmsGrpCod] where Father='" & ItemCode & "' and Type=4 and T1.ItmsGrpCod<>112")
+            otemp1.DoQuery("Select Sum(""U_AVGCOST"" * ""Quantity""), from ITT1 T0  Inner Join  OITM T1 on T1.""ItemCode""=T0.""Code""  INNER JOIN OITB T2 ON T1.""ItmsGrpCod"" = T2.""ItmsGrpCod"" where ""Father""='" & ItemCode & "' and ""Type""=4 and T1.""ItmsGrpCod""<>112")
 
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
             oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = 1
@@ -130,8 +130,8 @@
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Labor"
             Dim intResourceCode As Integer
             Dim strTemp As String
-            strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Labour%'"
-            strTemp = "SELECT Sum(U_AVGCOST *Quantity)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father='" & ItemCode & "' and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+            strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Labour%'"
+            strTemp = "SELECT Sum(""U_AVGCOST"" * ""Quantity"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode""=T0.""Code"" where ""Father""='" & ItemCode & "' and T0.""Type""=290 and T1.""ResGrpCod"" =(" & strTemp & ")"
             ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
             otemp1.DoQuery(strTemp)
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
@@ -145,8 +145,8 @@
             oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Machine"
 
-            strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Machine%'"
-            strTemp = "SELECT Sum(U_AVGCOST*Quantity)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father='" & ItemCode & "' and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+            strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Machine%'"
+            strTemp = "SELECT Sum(""U_AVGCOST"" * ""Quantity"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode""=T0.""Code"" where ""Father""='" & ItemCode & "' and T0.""Type""=290 and T1.""ResGrpCod""=(" & strTemp & ")"
             ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
             otemp1.DoQuery(strTemp)
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
@@ -159,8 +159,8 @@
             oUserTable.Name = strCode
             oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "OutSource"
-            strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'OutSource%'"
-            strTemp = "SELECT Sum(U_AVGCOST*Quantity)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father='" & ItemCode & "' and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+            strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'OutSource%'"
+            strTemp = "SELECT Sum(""U_AVGCOST"" * ""Quantity"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode""=T0.""Code"" where ""Father""='" & ItemCode & "' and T0.""Type""=290 and T1.""ResGrpCod"" =(" & strTemp & ")"
             ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
             otemp1.DoQuery(strTemp)
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
@@ -173,7 +173,7 @@
             oUserTable.Name = strCode
             oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
             oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "LED Material"
-            otemp1.DoQuery("Select Sum(U_AVGCOST*Quantity) from ITT1 T0  Inner Join  OITM T1 on T1.ItemCode=T0.Code  INNER JOIN OITB T2 ON T1.[ItmsGrpCod] = T2.[ItmsGrpCod] where Father='" & ItemCode & "' and Type=4 and T1.ItmsGrpCod=112")
+            otemp1.DoQuery("Select Sum(""U_AVGCOST"" * ""Quantity"") from ITT1 T0  Inner Join  OITM T1 on T1.""ItemCode""=T0.""Code""  INNER JOIN OITB T2 ON T1.""ItmsGrpCod"" = T2.""ItmsGrpCod"" where ""Father""='" & ItemCode & "' and ""Type""=4 and T1.""ItmsGrpCod""=112")
             oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
             oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = 1
             oUserTable.UserFields.Fields.Item("U_Z_Price").Value = otemp1.Fields.Item(0).Value
@@ -192,7 +192,7 @@
         oUserTable = oApplication.Company.UserTables.Item("Z_OITT")
         Dim dblAvgCost As Double
         If aChoice = "Update" Then
-            otemp1.DoQuery("Select Code,* from [@Z_OITT] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='Material'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT"" where ""U_Z_ItemCode"" = '" & ItemCode & "' and ""U_Z_Type"" = 'Material'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
@@ -200,7 +200,7 @@
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Material"
                 oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item("U_Z_Markup").Value
-                otemp1.DoQuery("Select Sum(U_AVGCOST*Quantity),Avg(U_MARKUP) from ITT1 T0  Inner Join  OITM T1 on T1.ItemCode=T0.Code  INNER JOIN OITB T2 ON T1.[ItmsGrpCod] = T2.[ItmsGrpCod] where Father='" & ItemCode & "' and Type=4 and T1.ItmsGrpCod<>112")
+                otemp1.DoQuery("Select Sum(""U_AVGCOST"" * ""Quantity""),Avg(""U_MARKUP"") from ITT1 T0  Inner Join  OITM T1 on T1.""ItemCode"" = T0.""Code""  INNER JOIN OITB T2 ON T1.""ItmsGrpCod"" = T2.""ItmsGrpCod"" where ""Father"" = '" & ItemCode & "' and ""Type"" = 4 and T1.""ItmsGrpCod"" <> 112")
                 dblAvgCost = otemp1.Fields.Item(0).Value
 
                 oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = dblAvgCost ' otemp1.Fields.Item(0).Value
@@ -210,7 +210,7 @@
             Dim intResourceCode As Integer
             Dim strTemp As String
 
-            otemp1.DoQuery("Select Code,* from [@Z_OITT] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='Labor'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT"" where ""U_Z_ItemCode"" = '" & ItemCode & "' and ""U_Z_Type"" ='Labor'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
@@ -218,8 +218,8 @@
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Labor"
                 oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item("U_Z_Markup").Value
-                strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Labour%'"
-                strTemp = "SELECT Sum(U_AVGCOST*Quantity) ,Avg(U_MARKUP)  FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father='" & ItemCode & "' and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+                strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Labour%'"
+                strTemp = "SELECT Sum(""U_AVGCOST"" * ""Quantity"") ,Avg(""U_MARKUP"")  FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode"" = T0.""Code"" where ""Father"" = '" & ItemCode & "' and T0.""Type"" = 290 and T1.""ResGrpCod"" =(" & strTemp & ")"
                 otemp1.DoQuery(strTemp)
                 dblAvgCost = otemp1.Fields.Item(0).Value
 
@@ -228,7 +228,7 @@
                 oUserTable.Update()
             End If
 
-            otemp1.DoQuery("Select Code,* from [@Z_OITT] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='Machine'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT"" where ""U_Z_ItemCode"" = '" & ItemCode & "' and ""U_Z_Type"" = 'Machine'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
@@ -236,8 +236,8 @@
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "Machine"
                 oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item("U_Z_Markup").Value
-                strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Machine%'"
-                strTemp = "SELECT Sum(U_AVGCOST*Quantity),AVG(U_MARKUP)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father='" & ItemCode & "' and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+                strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Machine%'"
+                strTemp = "SELECT Sum(""U_AVGCOST"" * ""Quantity""),AVG(""U_MARKUP"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode"" = T0.""Code"" where ""Father"" ='" & ItemCode & "' and T0.""Type"" = 290 and T1.""ResGrpCod"" = (" & strTemp & ")"
                 ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
                 otemp1.DoQuery(strTemp)
                 dblAvgCost = otemp1.Fields.Item(0).Value
@@ -262,7 +262,7 @@
             'oUserTable.Add()
 
 
-            otemp1.DoQuery("Select Code,* from [@Z_OITT] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='OutSource'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT"" where ""U_Z_ItemCode"" = '" & ItemCode & "' and ""U_Z_Type"" = 'OutSource'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
@@ -270,8 +270,8 @@
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "OutSource"
                 oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item("U_Z_Markup").Value
-                strTemp = "SELECT  Top 1 T1.[ResGrpCod] FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'OutSource%'"
-                strTemp = "SELECT Sum(U_AVGCOST*Quantity),AVG(U_MARKUP)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father='" & ItemCode & "' and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
+                strTemp = "SELECT  Top 1 T1.""ResGrpCod"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'OutSource%'"
+                strTemp = "SELECT Sum(""U_AVGCOST"" * ""Quantity""),AVG(""U_MARKUP"")   FROM ITT1 T0  inner Join  ORSC T1 on T1.""VisResCode"" = T0.""Code"" where ""Father"" = '" & ItemCode & "' and T0.""Type"" = 290 and T1.""ResGrpCod"" =(" & strTemp & ")"
                 ' otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
                 otemp1.DoQuery(strTemp)
                 dblAvgCost = otemp1.Fields.Item(0).Value
@@ -296,7 +296,7 @@
 
 
 
-            otemp1.DoQuery("Select Code,* from [@Z_OITT] where U_Z_ItemCode='" & ItemCode & "' and U_Z_Type='LED Material'")
+            otemp1.DoQuery("Select ""Code"",* from ""@Z_OITT"" where ""U_Z_ItemCode"" ='" & ItemCode & "' and ""U_Z_Type"" = 'LED Material'")
             If otemp1.RecordCount > 0 Then
                 strCode = otemp1.Fields.Item("Code").Value
                 oUserTable.GetByKey(strCode)
@@ -304,7 +304,7 @@
                 oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = ItemCode
                 oUserTable.UserFields.Fields.Item("U_Z_Type").Value = "LED Material"
                 oUserTable.UserFields.Fields.Item("U_Z_Markup").Value = otemp1.Fields.Item("U_Z_Markup").Value
-                otemp1.DoQuery("Select Sum(U_AVGCOST*Quantity),AVG(U_MARKUP) from ITT1 T0  Inner Join  OITM T1 on T1.ItemCode=T0.Code  INNER JOIN OITB T2 ON T1.[ItmsGrpCod] = T2.[ItmsGrpCod] where Father='" & ItemCode & "' and Type=4 and T1.ItmsGrpCod=112")
+                otemp1.DoQuery("Select Sum(""U_AVGCOST"" * ""Quantity""),AVG(""U_MARKUP"") from ITT1 T0  Inner Join  OITM T1 on T1.""ItemCode""= T0.""Code""  INNER JOIN OITB T2 ON T1.""ItmsGrpCod"" = T2.""ItmsGrpCod"" where ""Father"" = '" & ItemCode & "' and ""Type""=4 and T1.""ItmsGrpCod""=112")
                 oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item(0).Value
                 dblAvgCost = otemp1.Fields.Item(0).Value
                 oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = dblAvgCost
@@ -321,7 +321,7 @@
             'oUserTable.UserFields.Fields.Item("U_Z_Price").Value = 0
             'oUserTable.Add()
         End If
-        otemp1.DoQuery("Update [@Z_OITT] set U_Z_Price=U_Z_Cost * U_Z_Markup where U_Z_ItemCode='" & ItemCode & "'")
+        otemp1.DoQuery("Update ""@Z_OITT"" set ""U_Z_Price"" = ""U_Z_Cost"" * ""U_Z_Markup"" where ""U_Z_ItemCode"" = '" & ItemCode & "'")
 
         Return True
     End Function
@@ -330,32 +330,32 @@
         Dim strTemp As String
         oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
         otemp1 = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oTemp.DoQuery("Select * from [@Z_OITT] where U_Z_ItemCode='" & aCode & "' order by Code")
+        oTemp.DoQuery("Select * from ""@Z_OITT"" where ""U_Z_ItemCode"" = '" & aCode & "' order by ""Code"" ")
         For intRow As Integer = 0 To oTemp.RecordCount - 1
             If oTemp.Fields.Item("U_Z_Type").Value = "Material" Then
-                strTemp = "Update  ITT1 set U_Markup =" & oTemp.Fields.Item("U_Z_Markup").Value & " where Father='" & aCode & "' and Type=4 and Code in (Select ItemCode from OITM T1 inner Join OITB T2 on T2.ItmsGrpCod=T1.ItmsGrpCod where T2.ItmsGrpCod<>112)"
+                strTemp = "Update  ITT1 set ""U_Markup"" =" & oTemp.Fields.Item("U_Z_Markup").Value & " where ""Father"" = '" & aCode & "' and ""Type"" = 4 and ""Code"" in (Select ""ItemCode"" from OITM T1 inner Join OITB T2 on T2.""ItmsGrpCod"" = T1.""ItmsGrpCod"" where T2.""ItmsGrpCod"" <> 112)"
                 otemp1.DoQuery(strTemp)
             ElseIf oTemp.Fields.Item("U_Z_Type").Value = "Labor" Then
                 '  strTemp = "SELECT Sum(U_AVGCOST)   FROM ITT1 T0  inner Join  ORSC T1 on T1.VisResCode=T0.Code where Father='" & ItemCode & "'and T0.Type=290 and T1.ResGrpCod =(" & strTemp & ")"
-                strTemp = "SELECT  VisResCode FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Labour%'"
+                strTemp = "SELECT  ""VisResCode"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Labour%'"
                 'strTemp = "(Select VisResCode from ORSC where "
-                strTemp = "Update  ITT1 set  U_Markup =" & oTemp.Fields.Item("U_Z_MarkUp").Value & " where Father='" & aCode & "' and Type=290 and Code in (" & strTemp & ")"
+                strTemp = "Update  ITT1 set  ""U_Markup"" =" & oTemp.Fields.Item("U_Z_MarkUp").Value & " where ""Father"" ='" & aCode & "' and ""Type"" =290 and ""Code"" in (" & strTemp & ")"
                 otemp1.DoQuery(strTemp)
             ElseIf oTemp.Fields.Item("U_Z_Type").Value = "Machine" Then
-                strTemp = "SELECT  VisResCode FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'Machine%'"
-                strTemp = "Update  ITT1 set  U_Markup =" & oTemp.Fields.Item("U_Z_MarkUp").Value & " where Father='" & aCode & "' and Type=290 and Code in (" & strTemp & ")"
+                strTemp = "SELECT  ""VisResCode"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'Machine%'"
+                strTemp = "Update  ITT1 set  ""U_Markup"" =" & oTemp.Fields.Item("U_Z_MarkUp").Value & " where ""Father"" = '" & aCode & "' and ""Type"" = 290 and ""Code"" in (" & strTemp & ")"
                 otemp1.DoQuery(strTemp)
             ElseIf oTemp.Fields.Item("U_Z_Type").Value = "OutSource" Then
-                strTemp = "SELECT  VisResCode FROM ORSC T0  INNER JOIN ORSB T1 ON T0.[ResGrpCod] = T1.[ResGrpCod] where T1.[ResGrpNam] like 'OutSource%'"
-                strTemp = "Update  ITT1 set U_Markup =" & oTemp.Fields.Item("U_Z_MarkUp").Value & " where Father='" & aCode & "' and Type=290 and Code in(" & strTemp & ")"
+                strTemp = "SELECT  ""VisResCode"" FROM ORSC T0  INNER JOIN ORSB T1 ON T0.""ResGrpCod"" = T1.""ResGrpCod"" where T1.""ResGrpNam"" like 'OutSource%'"
+                strTemp = "Update  ITT1 set ""U_Markup"" =" & oTemp.Fields.Item("U_Z_MarkUp").Value & " where ""Father"" = '" & aCode & "' and ""Type"" = 290 and ""Code"" in(" & strTemp & ")"
                 otemp1.DoQuery(strTemp)
             ElseIf oTemp.Fields.Item("U_Z_Type").Value = "LED Material" Then
-                strTemp = "Update  ITT1 set U_Markup =" & oTemp.Fields.Item("U_Z_Markup").Value & " where Father='" & aCode & "' and Type=4 and Code in (Select ItemCode from OITM T1 inner Join OITB T2 on T2.ItmsGrpCod=T1.ItmsGrpCod where T2.ItmsGrpCod=112)"
+                strTemp = "Update  ITT1 set ""U_Markup"" = " & oTemp.Fields.Item("U_Z_Markup").Value & " where ""Father"" = '" & aCode & "' and ""Type"" = 4 and ""Code"" in (Select ""ItemCode"" from OITM T1 inner Join OITB T2 on T2.""ItmsGrpCod"" = T1.""ItmsGrpCod"" where T2.""ItmsGrpCod"" =112)"
                 otemp1.DoQuery(strTemp)
             End If
             oTemp.MoveNext()
         Next
-        otemp1.DoQuery("Update ITT1 set Price=U_AVGCOST * U_MARKUP where Father='" & aCode & "'")
+        otemp1.DoQuery("Update ITT1 set ""Price"" = ""U_AVGCOST"" * ""U_MARKUP"" where ""Father"" ='" & aCode & "'")
 
     End Sub
     Private Sub Validate(aForm As SAPbouiCOM.Form)

@@ -1,6 +1,7 @@
 ﻿<Application>
   <Menus>
     <action type="remove">
+      <Menu Uniqueid="Menu_P06"></Menu>
       <Menu UniqueID="Menu_P05"></Menu>
       <menu UniqueID="Menu_P04"></menu>
       <menu UniqueID="Menu_P03"></menu>

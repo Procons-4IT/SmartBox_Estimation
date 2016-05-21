@@ -22,6 +22,91 @@ Public Class clsUtilities
         MyBase.New()
         FormNum = 1
     End Sub
+    Public Function AddToUDT_Table(ByVal aProjectCode As String, aProjectName As String, aPhase As String, aActivity As String, aBomRef As String) As Boolean
+        Dim strCode, strDocref, strEmpID, strLineCode, stdocdate, strEmpName, strEmployeename, stremptype, strprojectname, strPrjCode, strAmount As String
+        Dim dtDate As Date
+        Dim intHours, dblAmount As Double
+        Dim oTempRec, otemp As SAPbobsCOM.Recordset
+        Dim ousertable As SAPbobsCOM.UserTable
+        Dim ocheckbox As SAPbouiCOM.CheckBoxColumn
+        Dim oedittext As SAPbouiCOM.EditTextColumn
+        Dim dblPercentage As Double
+        Dim blnexits As Boolean = False
+        Dim blnLines As Boolean = False
+        Dim dtFrom, dtTo, dtRequestdate As Date
+        Dim oBPGrid As SAPbouiCOM.Grid
+        Dim strRef1 As String
+        '  oBPGrid = aform.Items.Item("mtchoose").Specific
+        Dim strBomLineQuery As String
+        Dim strQuery As String
+        Dim aRefCode, aFather As String
+        If blnIsHana = True Then
+            strQuery = "select T0.""U_Z_Code"" ,T1.""U_Z_ItemCode"" ,T1.""U_Z_ItemName"" ,T1.""U_Z_BaseQty"",ifnull(T1.""U_Z_BoMRef"",'') ""BoMRef"" from ""@Z_OPRPH"" T0 Inner Join ""@Z_PRPH1"" T1 on T1.""DocEntry""=T0.""DocEntry"""
+        Else
+            strQuery = "select T0.""U_Z_Code"" ,T1.""U_Z_ItemCode"" ,T1.""U_Z_ItemName"" ,T1.""U_Z_BaseQty"",isnull(T1.""U_Z_BoMRef"",'') ""BoMRef"" from ""@Z_OPRPH"" T0 Inner Join ""@Z_PRPH1"" T1 on T1.""DocEntry""=T0.""DocEntry"""
+        End If
+        strQuery = strQuery & " where T0.""U_Z_Code""='" & aActivity & "'"
+        otemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+        Dim oRec1, oRec2 As SAPbobsCOM.Recordset
+        oRec1 = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+        oRec2 = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+        otemp.DoQuery(strQuery)
+        For IntRow As Integer = 0 To otemp.RecordCount - 1
+            aRefCode = otemp.Fields.Item("BoMRef").Value
+            aFather = otemp.Fields.Item(1).Value
+            If aRefCode <> "" Then
+                If blnIsHana = True Then
+                    strBomLineQuery = "Select ""U_Z_Type"",""U_Z_ItemCode"",""U_Z_BaseQty"",""U_Z_Cost"",""U_Z_WhsCode"",""U_Z_UoM"",""U_Z_PlnList"",ifnull(""U_Z_PHSRef"",'') ""U_Z_PHSRef"" from ""@Z_PRPH2"" where ""U_Z_PHRef""='" & aRefCode & "'"
+                Else
+                    strBomLineQuery = "Select ""U_Z_Type"",""U_Z_ItemCode"",""U_Z_BaseQty"",""U_Z_Cost"",""U_Z_WhsCode"",""U_Z_UoM"",""U_Z_PlnList"",isnull(""U_Z_PHSRef"",'') ""U_Z_PHSRef"" from ""@Z_PRPH2"" where ""U_Z_PHRef""='" & aRefCode & "'"
+                End If
+                oRec1.DoQuery(strBomLineQuery)
+                If oRec1.RecordCount > 0 Then
+                    If oRec1.Fields.Item("U_Z_PHSRef").Value <> "" Then
+                        strBomLineQuery = "Select ""U_Z_Type"",""U_Z_ItemCode"",""U_Z_BaseQty"",""U_Z_Cost"",""U_Z_WhsCode"",""U_Z_UoM"",""U_Z_PlnList""  from ""@Z_PRPH3"" where ""U_Z_PHRef""='" & oRec1.Fields.Item("U_Z_PHSRef").Value & "'"
+                    Else
+                        strBomLineQuery = "Select ""U_Z_Type"",""U_Z_ItemCode"",""U_Z_BaseQty"",""U_Z_Cost"",""U_Z_WhsCode"",""U_Z_UoM"",""U_Z_PlnList""  from ""@Z_PRPH2"" where ""U_Z_PHRef""='" & aRefCode & "'"
+                    End If
+                End If
+            Else
+                strBomLineQuery = "Select * from ITT1 where ""Father""='" & aFather & "'"
+                strBomLineQuery = "select ""Type"",""Code"",""Quantity"",""OrigPrice"",""Warehouse"",""Uom"",""PriceList""  from ITT1  where ""Father""='" & aFather & "'"
+            End If
+            oRec1.DoQuery(strBomLineQuery)
+            ousertable = oApplication.Company.UserTables.Item("Z_PRJ2")
+            For intloop As Integer = 0 To oRec1.RecordCount - 1
+                strCode = oApplication.Utilities.getMaxCode("@Z_PRJ2", "Code")
+                ousertable.Code = strCode
+                ousertable.Name = strCode
+                ousertable.UserFields.Fields.Item("U_Z_PRJCODE").Value = aProjectCode
+                ousertable.UserFields.Fields.Item("U_Z_PRJNAME").Value = aProjectName
+                ousertable.UserFields.Fields.Item("U_Z_ModName").Value = aPhase
+                ousertable.UserFields.Fields.Item("U_Z_ActName").Value = aActivity
+                ousertable.UserFields.Fields.Item("U_Z_BOQRef").Value = aBomRef
+                ousertable.UserFields.Fields.Item("U_Z_Status").Value = "I"
+                ousertable.UserFields.Fields.Item("U_Z_ItemCode").Value = oRec1.Fields.Item(1).Value
+                ousertable.UserFields.Fields.Item("U_Z_UOM").Value = oRec1.Fields.Item(5).Value
+                ousertable.UserFields.Fields.Item("U_Z_ReqQty").Value = oRec1.Fields.Item(2).Value
+                ousertable.UserFields.Fields.Item("U_Z_UNITPRICE").Value = oRec1.Fields.Item(3).Value
+                ousertable.UserFields.Fields.Item("U_Z_EstCost").Value = oRec1.Fields.Item(2).Value * oRec1.Fields.Item(3).Value
+                ousertable.UserFields.Fields.Item("U_Z_PR").Value = "N"
+                oRec2.DoQuery("Select * from OITM where ""ItemCode""='" & oRec1.Fields.Item(1).Value & "'")
+                ousertable.UserFields.Fields.Item("U_Z_ItemName").Value = oRec2.Fields.Item("ItemName").Value
+                ousertable.UserFields.Fields.Item("U_Z_Vendor").Value = oRec2.Fields.Item("CardCode").Value
+                oRec2.DoQuery("Select * from OCRD where ""CardCode""='" & oRec2.Fields.Item("CardCode").Value & "'")
+                ousertable.UserFields.Fields.Item("U_Z_VendorName").Value = oRec2.Fields.Item("CardName").Value
+                If ousertable.Add <> 0 Then
+                    oApplication.Utilities.Message(oApplication.Company.GetLastErrorDescription, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                    Return False
+                End If
+                oRec1.MoveNext()
+            Next
+            otemp.MoveNext()
+        Next
+        oApplication.Utilities.Message("Operation completed successfuly", SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        Return True
+    End Function
+
     Public Function createPayrollMainAuthorization() As Boolean
         Dim RetVal As Long
         Dim ErrCode As Long
@@ -76,7 +161,6 @@ Public Class clsUtilities
             Return False
         End If
 
-
     End Function
 
     Public Sub AuthorizationCreation()
@@ -93,13 +177,13 @@ Public Class clsUtilities
         Dim struserid As String
         '    Return False
         struserid = oApplication.Company.UserName
-        oAuth.DoQuery("select * from UPT1 where FormId='" & aFormUID & "'")
+        oAuth.DoQuery("select * from UPT1 where ""FormId"" = '" & aFormUID & "'")
         If (oAuth.RecordCount <= 0) Then
             Return True
         Else
             Dim st As String
             st = oAuth.Fields.Item("PermId").Value
-            st = "Select * from USR3 where PermId='" & st & "' and UserLink=" & aUserId
+            st = "Select * from USR3 where ""PermId"" = '" & st & "' and ""UserLink"" =" & aUserId
             oAuth.DoQuery(st)
             If oAuth.RecordCount > 0 Then
                 If oAuth.Fields.Item("Permission").Value = "N" Then
@@ -109,17 +193,16 @@ Public Class clsUtilities
             Else
                 Return True
             End If
-
         End If
-
         Return True
-
     End Function
+
     Public Sub setEdittextvalue(ByVal aform As SAPbouiCOM.Form, ByVal UID As String, ByVal newvalue As String)
         Dim objEdit As SAPbouiCOM.EditText
         objEdit = aform.Items.Item(UID).Specific
         objEdit.String = newvalue
     End Sub
+
     Public Sub AssignRowNo(aGrid As SAPbouiCOM.Grid)
         For intRow As Integer = 0 To aGrid.DataTable.Rows.Count - 1
             aGrid.RowHeaders.SetText(intRow, intRow + 1)
@@ -127,455 +210,455 @@ Public Class clsUtilities
         aGrid.RowHeaders.TitleObject.Caption = "#"
     End Sub
 
-    Public Function generateBarCodes(ByVal aform As SAPbouiCOM.Form) As Boolean
-        Dim strFromItem, strToItem, strBrand, strSeason, strSQL As String
-        Dim ostatic As SAPbouiCOM.StaticText
-        Dim oTempRec As SAPbobsCOM.Recordset
-        Try
-            strFromItem = getEditTextvalue(aform, "4")
-            strToItem = getEditTextvalue(aform, "6")
-            Dim oCombo As SAPbouiCOM.ComboBox
-            oCombo = aform.Items.Item("8").Specific
-            Try
-                strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
-            Catch ex As Exception
-                strSeason = ""
-            End Try
+    'Public Function generateBarCodes(ByVal aform As SAPbouiCOM.Form) As Boolean
+    '    Dim strFromItem, strToItem, strBrand, strSeason, strSQL As String
+    '    Dim ostatic As SAPbouiCOM.StaticText
+    '    Dim oTempRec As SAPbobsCOM.Recordset
+    '    Try
+    '        strFromItem = getEditTextvalue(aform, "4")
+    '        strToItem = getEditTextvalue(aform, "6")
+    '        Dim oCombo As SAPbouiCOM.ComboBox
+    '        oCombo = aform.Items.Item("8").Specific
+    '        Try
+    '            strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
+    '        Catch ex As Exception
+    '            strSeason = ""
+    '        End Try
 
-            oCombo = aform.Items.Item("10").Specific
-            Try
-                strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
-            Catch ex As Exception
-                strBrand = ""
-            End Try
+    '        oCombo = aform.Items.Item("10").Specific
+    '        Try
+    '            strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
+    '        Catch ex As Exception
+    '            strBrand = ""
+    '        End Try
 
-            If strFromItem = "" Then
-                strFromItem = " (1=1"
-            Else
-                strFromItem = "( ""ItemCode"" >='" & strFromItem & "'"
-            End If
+    '        If strFromItem = "" Then
+    '            strFromItem = " (1=1"
+    '        Else
+    '            strFromItem = "( ""ItemCode"" >='" & strFromItem & "'"
+    '        End If
 
-            If strToItem = "" Then
-                strFromItem = strFromItem & " and  1=1 )"
-            Else
-                strFromItem = strFromItem & " and  ""ItemCode"" <='" & strToItem & "')"
-            End If
-            If strSeason = "" Then
-                strSeason = " and 1=1"
-            Else
-                strSeason = " and ""U_SEASON""='" & strSeason & "'"
-            End If
-            If strBrand = "" Then
-                strBrand = " and 1=1"
-            Else
-                strBrand = " and ""U_BRAND""='" & strBrand & "'"
-            End If
-            strSQL = "Select ""ItemCode"",""ItemName"" from OITM where " & strFromItem & strSeason & strBrand
-            oTempRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            oTempRec.DoQuery(strSQL)
-            ostatic = aform.Items.Item("11").Specific
+    '        If strToItem = "" Then
+    '            strFromItem = strFromItem & " and  1=1 )"
+    '        Else
+    '            strFromItem = strFromItem & " and  ""ItemCode"" <='" & strToItem & "')"
+    '        End If
+    '        If strSeason = "" Then
+    '            strSeason = " and 1=1"
+    '        Else
+    '            strSeason = " and ""U_SEASON""='" & strSeason & "'"
+    '        End If
+    '        If strBrand = "" Then
+    '            strBrand = " and 1=1"
+    '        Else
+    '            strBrand = " and ""U_BRAND""='" & strBrand & "'"
+    '        End If
+    '        strSQL = "Select ""ItemCode"",""ItemName"" from OITM where " & strFromItem & strSeason & strBrand
+    '        oTempRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '        oTempRec.DoQuery(strSQL)
+    '        ostatic = aform.Items.Item("11").Specific
 
-            Dim ORec As SAPbobsCOM.Recordset
-            ORec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            ORec.DoQuery("Select isnull(""U_Z_BINCODE"",'') from OADM")
-            Dim aBinCode As String
-            aBinCode = ORec.Fields.Item(0).Value
-            If aBinCode = "" Then
-                oApplication.Utilities.Message("BinCode not defined in the Company Setup", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                Return False
-            Else
-                aBinCode = aBinCode + getmaxBarCode("OBCD", "BcdCode")
-                '  aBarCode = GenerateCheckDidgit(aBinCode)
-            End If
-            Dim intBarCode, aBarCode As String
-            Dim dtTable As SAPbouiCOM.DataTable
-            Dim ogrid As SAPbouiCOM.Grid
+    '        Dim ORec As SAPbobsCOM.Recordset
+    '        ORec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '        ORec.DoQuery("Select isnull(""U_Z_BINCODE"",'') from OADM")
+    '        Dim aBinCode As String
+    '        aBinCode = ORec.Fields.Item(0).Value
+    '        If aBinCode = "" Then
+    '            oApplication.Utilities.Message("BinCode not defined in the Company Setup", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '            Return False
+    '        Else
+    '            aBinCode = aBinCode + getmaxBarCode("OBCD", "BcdCode")
+    '            '  aBarCode = GenerateCheckDidgit(aBinCode)
+    '        End If
+    '        Dim intBarCode, aBarCode As String
+    '        Dim dtTable As SAPbouiCOM.DataTable
+    '        Dim ogrid As SAPbouiCOM.Grid
 
-            ogrid = aform.Items.Item("12").Specific
-            ogrid.DataTable = aform.DataSources.DataTables.Item("DT_0")
-            aform.Items.Item("12").Visible = False
-            dtTable = aform.DataSources.DataTables.Item("DT_1")
-            dtTable.Rows.Clear()
-            ' dtTable.ExecuteQuery("Select ItemCode,ItemName,CodeBars from OITM where ItemCode='dd'")
-            For intRow As Integer = 0 To oTempRec.RecordCount - 1
-                ostatic.Caption = "Processing ItemCode : " & oTempRec.Fields.Item(0).Value
-                '     GenerateBarCode(oTempRec.Fields.Item(0).Value, "test")
-                ORec.DoQuery("Select * from OBCD where ""ItemCode""='" & oTempRec.Fields.Item(0).Value & "'")
-                If ORec.RecordCount <= 0 Then
+    '        ogrid = aform.Items.Item("12").Specific
+    '        ogrid.DataTable = aform.DataSources.DataTables.Item("DT_0")
+    '        aform.Items.Item("12").Visible = False
+    '        dtTable = aform.DataSources.DataTables.Item("DT_1")
+    '        dtTable.Rows.Clear()
+    '        ' dtTable.ExecuteQuery("Select ItemCode,ItemName,CodeBars from OITM where ItemCode='dd'")
+    '        For intRow As Integer = 0 To oTempRec.RecordCount - 1
+    '            ostatic.Caption = "Processing ItemCode : " & oTempRec.Fields.Item(0).Value
+    '            '     GenerateBarCode(oTempRec.Fields.Item(0).Value, "test")
+    '            ORec.DoQuery("Select * from OBCD where ""ItemCode""='" & oTempRec.Fields.Item(0).Value & "'")
+    '            If ORec.RecordCount <= 0 Then
 
-                    aBarCode = GenerateCheckDidgit(aBinCode)
-                    aBinCode = Convert.ToDouble(aBinCode) + 1
-                    dtTable.Rows.Add()
-                    dtTable.SetValue(0, dtTable.Rows.Count - 1, oTempRec.Fields.Item(0).Value)
-                    dtTable.SetValue(1, dtTable.Rows.Count - 1, oTempRec.Fields.Item(1).Value)
-                    dtTable.SetValue(2, dtTable.Rows.Count - 1, aBarCode)
-                    ostatic.Caption = "Processing ItemCode : " & oTempRec.Fields.Item(0).Value & "BarCode : " & aBarCode
-                End If
-                oTempRec.MoveNext()
-            Next
-            ostatic.Caption = "Barcode prepared successfully"
-            ogrid = aform.Items.Item("12").Specific
-            ogrid.DataTable = dtTable
-            ogrid.Columns.Item(0).TitleObject.Caption = "Item Code"
-            Dim oedittext As SAPbouiCOM.EditTextColumn
-            oedittext = ogrid.Columns.Item(0)
-            oedittext.LinkedObjectType = "4"
-            ogrid.Columns.Item(1).TitleObject.Caption = "Item Name"
-            ogrid.Columns.Item(2).TitleObject.Caption = "BarCode"
-            ogrid.AutoResizeColumns()
-            ogrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_None
-            aform.Items.Item("12").Visible = True
-            Return True
-        Catch ex As Exception
-            Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-            Return False
-        End Try
-    End Function
+    '                aBarCode = GenerateCheckDidgit(aBinCode)
+    '                aBinCode = Convert.ToDouble(aBinCode) + 1
+    '                dtTable.Rows.Add()
+    '                dtTable.SetValue(0, dtTable.Rows.Count - 1, oTempRec.Fields.Item(0).Value)
+    '                dtTable.SetValue(1, dtTable.Rows.Count - 1, oTempRec.Fields.Item(1).Value)
+    '                dtTable.SetValue(2, dtTable.Rows.Count - 1, aBarCode)
+    '                ostatic.Caption = "Processing ItemCode : " & oTempRec.Fields.Item(0).Value & "BarCode : " & aBarCode
+    '            End If
+    '            oTempRec.MoveNext()
+    '        Next
+    '        ostatic.Caption = "Barcode prepared successfully"
+    '        ogrid = aform.Items.Item("12").Specific
+    '        ogrid.DataTable = dtTable
+    '        ogrid.Columns.Item(0).TitleObject.Caption = "Item Code"
+    '        Dim oedittext As SAPbouiCOM.EditTextColumn
+    '        oedittext = ogrid.Columns.Item(0)
+    '        oedittext.LinkedObjectType = "4"
+    '        ogrid.Columns.Item(1).TitleObject.Caption = "Item Name"
+    '        ogrid.Columns.Item(2).TitleObject.Caption = "BarCode"
+    '        ogrid.AutoResizeColumns()
+    '        ogrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_None
+    '        aform.Items.Item("12").Visible = True
+    '        Return True
+    '    Catch ex As Exception
+    '        Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '        Return False
+    '    End Try
+    'End Function
+
+    'Public Function PrintBarCode(ByVal aform As SAPbouiCOM.Form) As Boolean
+    '    Dim strFromItem, strToItem, strBrand, strSeason, strSQL As String
+    '    Dim ostatic As SAPbouiCOM.StaticText
+    '    Dim oTempRec As SAPbobsCOM.Recordset
+    '    Try
+    '        strFromItem = getEditTextvalue(aform, "4")
+    '        strToItem = getEditTextvalue(aform, "6")
+    '        Dim oCombo As SAPbouiCOM.ComboBox
+    '        oCombo = aform.Items.Item("8").Specific
+    '        Try
+    '            strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
+    '        Catch ex As Exception
+    '            strSeason = ""
+    '        End Try
+
+    '        oCombo = aform.Items.Item("10").Specific
+    '        Try
+    '            strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
+    '        Catch ex As Exception
+    '            strBrand = ""
+    '        End Try
+
+    '        If strFromItem = "" Then
+    '            strFromItem = " (1=1"
+    '        Else
+    '            strFromItem = "( ""ItemCode"" >='" & strFromItem & "'"
+    '        End If
+
+    '        If strToItem = "" Then
+    '            strFromItem = strFromItem & " and  1=1 )"
+    '        Else
+    '            strFromItem = strFromItem & " and  ""ItemCode"" <='" & strToItem & "')"
+    '        End If
+    '        If strSeason = "" Then
+    '            strSeason = " and 1=1"
+    '        Else
+    '            strSeason = " and ""U_SEASON""='" & strSeason & "'"
+    '        End If
+    '        If strBrand = "" Then
+    '            strBrand = " and 1=1"
+    '        Else
+    '            strBrand = " and ""U_BRAND""='" & strBrand & "'"
+    '        End If
+    '        strSQL = "Select ""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON""  from OITM where " & strFromItem & strSeason & strBrand
+    '        Dim ogrid As SAPbouiCOM.Grid
+    '        ogrid = aform.Items.Item("12").Specific
+    '        ogrid.DataTable = aform.DataSources.DataTables.Item("DT_0")
+    '        ogrid.DataTable.ExecuteQuery(strSQL)
+    '        aform.Items.Item("12").Visible = False
+    '        ogrid = aform.Items.Item("12").Specific
+    '        ogrid.DataTable.ExecuteQuery(strSQL)
+    '        ogrid.Columns.Item("ItemCode").TitleObject.Caption = "Item Code"
+    '        ogrid.Columns.Item("U_SEASON").TitleObject.Caption = "Season"
+    '        Dim oedittext As SAPbouiCOM.EditTextColumn
+    '        oedittext = ogrid.Columns.Item("ItemCode")
+    '        oedittext.LinkedObjectType = "4"
+    '        ogrid.AutoResizeColumns()
+    '        ogrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_None
+    '        aform.Items.Item("12").Visible = True
+    '        Return True
+    '    Catch ex As Exception
+    '        Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '        Return False
+    '    End Try
+    'End Function
+
+    'Public Function PrintBarCode_PO(ByVal aform As SAPbouiCOM.Form) As Boolean
+    '    Dim strFromItem, strToItem, strBrand, strSeason, strSQL As String
+    '    Dim ostatic As SAPbouiCOM.StaticText
+    '    Dim oTempRec As SAPbobsCOM.Recordset
+    '    Try
+    '        strFromItem = getEditTextvalue(aform, "4")
+    '        strToItem = getEditTextvalue(aform, "6")
+    '        Dim oCombo As SAPbouiCOM.ComboBox
+    '        oCombo = aform.Items.Item("8").Specific
+    '        Try
+    '            strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
+    '        Catch ex As Exception
+    '            strSeason = ""
+    '        End Try
+
+    '        oCombo = aform.Items.Item("10").Specific
+    '        Try
+    '            strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
+    '        Catch ex As Exception
+    '            strBrand = ""
+    '        End Try
+
+    '        If strFromItem = "" Then
+    '            strFromItem = " (1=1"
+    '        Else
+    '            strFromItem = "( T0.""DocEntry"" ='" & strFromItem & "')"
+    '        End If
+
+    '        'If strToItem = "" Then
+    '        '    strFromItem = strFromItem & " and  1=1 )"
+    '        'Else
+    '        '    strFromItem = strFromItem & " and  T0.""DocEntry"" <='" & strToItem & "')"
+    '        'End If
+    '        If strSeason = "" Then
+    '            strSeason = " and 1=1"
+    '        Else
+    '            strSeason = " and ""U_SEASON""='" & strSeason & "'"
+    '        End If
+    '        If strBrand = "" Then
+    '            strBrand = " and 1=1"
+    '        Else
+    '            strBrand = " and ""U_BRAND""='" & strBrand & "'"
+    '        End If
+    '        'strSQL = "Select ""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON"" from OITM where " & strFromItem & strSeason & strBrand
+    '        strSQL = "SELECT T1.""CodeBars"" ""BarCode"",T1.""ItemCode"",""ItemName"",T1.""Quantity"",T2.""U_SEASON"" FROM OPOR T0  INNER JOIN POR1 T1 ON T0.""DocEntry"" = T1.""DocEntry"" INNER JOIN OITM T2 ON T1.""ItemCode"" = T2.""ItemCode"" where " & strFromItem
+
+    '        Dim ogrid As SAPbouiCOM.Grid
+    '        ogrid = aform.Items.Item("12").Specific
+    '        ogrid.DataTable = aform.DataSources.DataTables.Item("DT_0")
+    '        ogrid.DataTable.ExecuteQuery(strSQL)
+    '        aform.Items.Item("12").Visible = False
+    '        ogrid = aform.Items.Item("12").Specific
+    '        ogrid.DataTable.ExecuteQuery(strSQL)
+    '        ogrid.Columns.Item("U_SEASON").TitleObject.Caption = "Season"
+    '        Dim oedittext As SAPbouiCOM.EditTextColumn
+    '        oedittext = ogrid.Columns.Item("ItemCode")
+    '        oedittext.LinkedObjectType = "4"
+    '        ogrid.AutoResizeColumns()
+    '        ogrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_None
+    '        aform.Items.Item("12").Visible = True
+    '        Return True
+    '    Catch ex As Exception
+    '        Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '        Return False
+    '    End Try
+    'End Function
+
+    'Public Sub PrintbarCode_Report_PO(ByVal aform As SAPbouiCOM.Form)
+    '    Dim oRec, oRecTemp, oRecBP, oBalanceRs, oTemp As SAPbobsCOM.Recordset
+    '    Dim strfrom, dtPosting, dtdue, dttax, strPaySQL, strto, strBranch, strSlpCode, strSlpName, strSMNo, strFromBP, strToBP, straging, strCardcode, strCardname, strBlock, strCity, strBilltoDef, strZipcode, strAddress, strCounty, strPhone1, strFax, strCntctprsn, strTerrtory, strNotes As String
+    '    Dim dtFrom, dtTo, dtAging As Date
+    '    Dim intReportChoice As Integer
+    '    Dim dblRef1, dblCredit, dblDebit, dblCumulative, dblOpenBalance As Double
+
+    '    Dim intMonth, intYear As Integer
+    '    Dim strCode, strSQL, strMonth, strYear, strType, strCmpCode As String
+    '    Dim oRS As SAPbobsCOM.Recordset
+    '    Dim dblTotal As Double = 0
+
+    '    Dim strFromItem, strToItem, strBrand, strSeason As String
+    '    Dim ostatic As SAPbouiCOM.StaticText
+    '    Dim oTempRec As SAPbobsCOM.Recordset
+    '    Try
+    '        strFromItem = getEditTextvalue(aform, "4")
+    '        strToItem = getEditTextvalue(aform, "6")
+    '        Dim oCombo As SAPbouiCOM.ComboBox
+    '        oCombo = aform.Items.Item("8").Specific
+    '        Try
+    '            strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
+    '        Catch ex As Exception
+    '            strSeason = ""
+    '        End Try
+
+    '        oCombo = aform.Items.Item("10").Specific
+    '        Try
+    '            strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
+    '        Catch ex As Exception
+    '            strBrand = ""
+    '        End Try
+
+    '        If strFromItem = "" Then
+    '            strFromItem = " (1=1"
+    '        Else
+    '            strFromItem = "( T0.""DocEntry"" ='" & strFromItem & "')"
+    '        End If
+
+    '        'If strToItem = "" Then
+    '        '    strFromItem = strFromItem & " and  1=1 )"
+    '        'Else
+    '        '    strFromItem = strFromItem & " and  ""DocEntry"" <='" & strToItem & "')"
+    '        'End If
+    '        'If strSeason = "" Then
+    '        '    strSeason = " and 1=1"
+    '        'Else
+    '        '    strSeason = " and ""U_SEASON""='" & strSeason & "'"
+    '        'End If
+    '        'If strBrand = "" Then
+    '        '    strBrand = " and 1=1"
+    '        'Else
+    '        '    strBrand = " and ""U_BRAND""='" & strBrand & "'"
+    '        'End If
+    '        '  strSQL = "Select ""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON"" from OITM where " & strFromItem & strSeason & strBrand
+    '        ' strSQL = "SELECT T1.""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",T2.""U_SEASON"" FROM OPO""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON""R T0  INNER JOIN POR1 T1 ON T0.""DocEntry"" = T1.""DocEntry"" INNER JOIN OITM T2 ON T1.""ItemCode"" = T2.""ItemCode"" where " & strFromItem
+    '        strSQL = "SELECT T1.""CodeBars"" ""BarCode"",T1.""ItemCode"",""ItemName"",T2.""U_SEASON"",T1.""Quantity"" FROM OPOR T0  INNER JOIN POR1 T1 ON T0.""DocEntry"" = T1.""DocEntry"" INNER JOIN OITM T2 ON T1.""ItemCode"" = T2.""ItemCode"" where " & strFromItem
+    '    Catch ex As Exception
+    '        Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '    End Try
+
+    '    oApplication.Utilities.Message("Processing...", SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+    '    oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '    oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '    oRecBP = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '    oRecBP.DoQuery(strSQL)
+
+    '    If 1 = 2 Then ' oRec.RecordCount <= 0 Then
+    '        oApplication.Utilities.Message("Payroll not generated for selected month and year", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '        Exit Sub
+    '    Else
+    '        ds.Clear()
+    '        ds.Clear()
+    '        oTemp.DoQuery(strSQL)
+    '        Dim dblQuantity As Double
+    '        For introw As Integer = 0 To oTemp.RecordCount - 1
+    '            dblQuantity = oTemp.Fields.Item("Quantity").Value
+    '            For intLoop As Integer = 1 To dblQuantity
 
 
-    Public Function PrintBarCode(ByVal aform As SAPbouiCOM.Form) As Boolean
-        Dim strFromItem, strToItem, strBrand, strSeason, strSQL As String
-        Dim ostatic As SAPbouiCOM.StaticText
-        Dim oTempRec As SAPbobsCOM.Recordset
-        Try
-            strFromItem = getEditTextvalue(aform, "4")
-            strToItem = getEditTextvalue(aform, "6")
-            Dim oCombo As SAPbouiCOM.ComboBox
-            oCombo = aform.Items.Item("8").Specific
-            Try
-                strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
-            Catch ex As Exception
-                strSeason = ""
-            End Try
+    '                oDRow = ds.Tables("Barcode").NewRow()
+    '                oDRow.Item("Barcode") = oTemp.Fields.Item("BarCode").Value
+    '                oDRow.Item("ItemCode") = oTemp.Fields.Item("ItemCode").Value
+    '                oDRow.Item("ItemName") = oTemp.Fields.Item("ItemName").Value
+    '                oDRow.Item("Season") = oTemp.Fields.Item("U_SEASON").Value
+    '                oDRow.Item("Quantity") = 1 ' oTemp.Fields.Item("Quantity").Value
+    '                oRecBP.DoQuery("Select * from ""@Z_OBPR""")
+    '                If oRecBP.RecordCount > 0 Then
+    '                    oRecBP.DoQuery("Select * from ITM1 where ""ItemCode""='" & oTemp.Fields.Item("ItemCode").Value & "' and ""PriceList""=" & oRecBP.Fields.Item("Code").Value)
+    '                Else
+    '                    oRecBP.DoQuery("Select * from ITM1 where ""ItemCode""='" & oTemp.Fields.Item("ItemCode").Value & "' and ""PriceList""=12")
+    '                End If
 
-            oCombo = aform.Items.Item("10").Specific
-            Try
-                strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
-            Catch ex As Exception
-                strBrand = ""
-            End Try
+    '                If oRecBP.RecordCount > 0 Then
+    '                    oDRow.Item("Price") = oRecBP.Fields.Item("Price").Value
+    '                Else
+    '                    oDRow.Item("Price") = 0
+    '                End If
 
-            If strFromItem = "" Then
-                strFromItem = " (1=1"
-            Else
-                strFromItem = "( ""ItemCode"" >='" & strFromItem & "'"
-            End If
+    '                ds.Tables("Barcode").Rows.Add(oDRow)
+    '            Next
+    '            oTemp.MoveNext()
+    '        Next
+    '        ' addCrystal(ds, "BarCode")
+    '    End If
+    '    ' oApplication.Utilities.Message("", SAPbouiCOM.BoStatusBarMessageType.smt_None)
+    'End Sub
 
-            If strToItem = "" Then
-                strFromItem = strFromItem & " and  1=1 )"
-            Else
-                strFromItem = strFromItem & " and  ""ItemCode"" <='" & strToItem & "')"
-            End If
-            If strSeason = "" Then
-                strSeason = " and 1=1"
-            Else
-                strSeason = " and ""U_SEASON""='" & strSeason & "'"
-            End If
-            If strBrand = "" Then
-                strBrand = " and 1=1"
-            Else
-                strBrand = " and ""U_BRAND""='" & strBrand & "'"
-            End If
-            strSQL = "Select ""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON""  from OITM where " & strFromItem & strSeason & strBrand
-            Dim ogrid As SAPbouiCOM.Grid
-            ogrid = aform.Items.Item("12").Specific
-            ogrid.DataTable = aform.DataSources.DataTables.Item("DT_0")
-            ogrid.DataTable.ExecuteQuery(strSQL)
-            aform.Items.Item("12").Visible = False
-            ogrid = aform.Items.Item("12").Specific
-            ogrid.DataTable.ExecuteQuery(strSQL)
-            ogrid.Columns.Item("ItemCode").TitleObject.Caption = "Item Code"
-            ogrid.Columns.Item("U_SEASON").TitleObject.Caption = "Season"
-            Dim oedittext As SAPbouiCOM.EditTextColumn
-            oedittext = ogrid.Columns.Item("ItemCode")
-            oedittext.LinkedObjectType = "4"
-            ogrid.AutoResizeColumns()
-            ogrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_None
-            aform.Items.Item("12").Visible = True
-            Return True
-        Catch ex As Exception
-            Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-            Return False
-        End Try
-    End Function
+    'Public Sub PrintbarCode_Report(ByVal aform As SAPbouiCOM.Form)
+    '    Dim oRec, oRecTemp, oRecBP, oBalanceRs, oTemp As SAPbobsCOM.Recordset
+    '    Dim strfrom, dtPosting, dtdue, dttax, strPaySQL, strto, strBranch, strSlpCode, strSlpName, strSMNo, strFromBP, strToBP, straging, strCardcode, strCardname, strBlock, strCity, strBilltoDef, strZipcode, strAddress, strCounty, strPhone1, strFax, strCntctprsn, strTerrtory, strNotes As String
+    '    Dim dtFrom, dtTo, dtAging As Date
+    '    Dim intReportChoice As Integer
+    '    Dim dblRef1, dblCredit, dblDebit, dblCumulative, dblOpenBalance As Double
 
-    Public Function PrintBarCode_PO(ByVal aform As SAPbouiCOM.Form) As Boolean
-        Dim strFromItem, strToItem, strBrand, strSeason, strSQL As String
-        Dim ostatic As SAPbouiCOM.StaticText
-        Dim oTempRec As SAPbobsCOM.Recordset
-        Try
-            strFromItem = getEditTextvalue(aform, "4")
-            strToItem = getEditTextvalue(aform, "6")
-            Dim oCombo As SAPbouiCOM.ComboBox
-            oCombo = aform.Items.Item("8").Specific
-            Try
-                strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
-            Catch ex As Exception
-                strSeason = ""
-            End Try
+    '    Dim intMonth, intYear As Integer
+    '    Dim strCode, strSQL, strMonth, strYear, strType, strCmpCode As String
+    '    Dim oRS As SAPbobsCOM.Recordset
+    '    Dim dblTotal As Double = 0
 
-            oCombo = aform.Items.Item("10").Specific
-            Try
-                strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
-            Catch ex As Exception
-                strBrand = ""
-            End Try
+    '    Dim strFromItem, strToItem, strBrand, strSeason As String
+    '    Dim ostatic As SAPbouiCOM.StaticText
+    '    Dim oTempRec As SAPbobsCOM.Recordset
+    '    Try
+    '        strFromItem = getEditTextvalue(aform, "4")
+    '        strToItem = getEditTextvalue(aform, "6")
+    '        Dim oCombo As SAPbouiCOM.ComboBox
+    '        oCombo = aform.Items.Item("8").Specific
+    '        Try
+    '            strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
+    '        Catch ex As Exception
+    '            strSeason = ""
+    '        End Try
 
-            If strFromItem = "" Then
-                strFromItem = " (1=1"
-            Else
-                strFromItem = "( T0.""DocEntry"" ='" & strFromItem & "')"
-            End If
+    '        oCombo = aform.Items.Item("10").Specific
+    '        Try
+    '            strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
+    '        Catch ex As Exception
+    '            strBrand = ""
+    '        End Try
 
-            'If strToItem = "" Then
-            '    strFromItem = strFromItem & " and  1=1 )"
-            'Else
-            '    strFromItem = strFromItem & " and  T0.""DocEntry"" <='" & strToItem & "')"
-            'End If
-            If strSeason = "" Then
-                strSeason = " and 1=1"
-            Else
-                strSeason = " and ""U_SEASON""='" & strSeason & "'"
-            End If
-            If strBrand = "" Then
-                strBrand = " and 1=1"
-            Else
-                strBrand = " and ""U_BRAND""='" & strBrand & "'"
-            End If
-            'strSQL = "Select ""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON"" from OITM where " & strFromItem & strSeason & strBrand
-            strSQL = "SELECT T1.""CodeBars"" ""BarCode"",T1.""ItemCode"",""ItemName"",T1.""Quantity"",T2.""U_SEASON"" FROM OPOR T0  INNER JOIN POR1 T1 ON T0.""DocEntry"" = T1.""DocEntry"" INNER JOIN OITM T2 ON T1.""ItemCode"" = T2.""ItemCode"" where " & strFromItem
+    '        If strFromItem = "" Then
+    '            strFromItem = " (1=1"
+    '        Else
+    '            strFromItem = "( ""ItemCode"" >='" & strFromItem & "'"
+    '        End If
 
-            Dim ogrid As SAPbouiCOM.Grid
-            ogrid = aform.Items.Item("12").Specific
-            ogrid.DataTable = aform.DataSources.DataTables.Item("DT_0")
-            ogrid.DataTable.ExecuteQuery(strSQL)
-            aform.Items.Item("12").Visible = False
-            ogrid = aform.Items.Item("12").Specific
-            ogrid.DataTable.ExecuteQuery(strSQL)
-            ogrid.Columns.Item("U_SEASON").TitleObject.Caption = "Season"
-            Dim oedittext As SAPbouiCOM.EditTextColumn
-            oedittext = ogrid.Columns.Item("ItemCode")
-            oedittext.LinkedObjectType = "4"
-            ogrid.AutoResizeColumns()
-            ogrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_None
-            aform.Items.Item("12").Visible = True
-            Return True
-        Catch ex As Exception
-            Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-            Return False
-        End Try
-    End Function
+    '        If strToItem = "" Then
+    '            strFromItem = strFromItem & " and  1=1 )"
+    '        Else
+    '            strFromItem = strFromItem & " and  ""ItemCode"" <='" & strToItem & "')"
+    '        End If
+    '        If strSeason = "" Then
+    '            strSeason = " and 1=1"
+    '        Else
+    '            strSeason = " and ""U_SEASON""='" & strSeason & "'"
+    '        End If
+    '        If strBrand = "" Then
+    '            strBrand = " and 1=1"
+    '        Else
+    '            strBrand = " and ""U_BRAND""='" & strBrand & "'"
+    '        End If
+    '        strSQL = "Select ""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON"" from OITM where " & strFromItem & strSeason & strBrand
 
-    Public Sub PrintbarCode_Report_PO(ByVal aform As SAPbouiCOM.Form)
-        Dim oRec, oRecTemp, oRecBP, oBalanceRs, oTemp As SAPbobsCOM.Recordset
-        Dim strfrom, dtPosting, dtdue, dttax, strPaySQL, strto, strBranch, strSlpCode, strSlpName, strSMNo, strFromBP, strToBP, straging, strCardcode, strCardname, strBlock, strCity, strBilltoDef, strZipcode, strAddress, strCounty, strPhone1, strFax, strCntctprsn, strTerrtory, strNotes As String
-        Dim dtFrom, dtTo, dtAging As Date
-        Dim intReportChoice As Integer
-        Dim dblRef1, dblCredit, dblDebit, dblCumulative, dblOpenBalance As Double
+    '    Catch ex As Exception
+    '        Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
 
-        Dim intMonth, intYear As Integer
-        Dim strCode, strSQL, strMonth, strYear, strType, strCmpCode As String
-        Dim oRS As SAPbobsCOM.Recordset
-        Dim dblTotal As Double = 0
+    '    End Try
 
-        Dim strFromItem, strToItem, strBrand, strSeason As String
-        Dim ostatic As SAPbouiCOM.StaticText
-        Dim oTempRec As SAPbobsCOM.Recordset
-        Try
-            strFromItem = getEditTextvalue(aform, "4")
-            strToItem = getEditTextvalue(aform, "6")
-            Dim oCombo As SAPbouiCOM.ComboBox
-            oCombo = aform.Items.Item("8").Specific
-            Try
-                strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
-            Catch ex As Exception
-                strSeason = ""
-            End Try
+    '    oApplication.Utilities.Message("Processing...", SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+    '    oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '    oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '    oRecBP = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '    oRecBP.DoQuery(strSQL)
 
-            oCombo = aform.Items.Item("10").Specific
-            Try
-                strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
-            Catch ex As Exception
-                strBrand = ""
-            End Try
+    '    If 1 = 2 Then ' oRec.RecordCount <= 0 Then
+    '        oApplication.Utilities.Message("Payroll not generated for selected month and year", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '        Exit Sub
+    '    Else
+    '        ds.Clear()
+    '        ds.Clear()
+    '        oTemp.DoQuery(strSQL)
+    '        For introw As Integer = 0 To oTemp.RecordCount - 1
+    '            oDRow = ds.Tables("Barcode").NewRow()
+    '            oDRow.Item("Barcode") = oTemp.Fields.Item("BarCode").Value
+    '            oDRow.Item("ItemCode") = oTemp.Fields.Item("ItemCode").Value
+    '            oDRow.Item("ItemName") = oTemp.Fields.Item("ItemName").Value
+    '            oDRow.Item("Season") = oTemp.Fields.Item("U_SEASON").Value
 
-            If strFromItem = "" Then
-                strFromItem = " (1=1"
-            Else
-                strFromItem = "( T0.""DocEntry"" ='" & strFromItem & "')"
-            End If
+    '            ' oRecBP.DoQuery("Select * from ITM1 where ItemCode='" & oTemp.Fields.Item("ItemCode").Value & "' and PriceList=1")
+    '            oRecBP.DoQuery("Select * from ""@Z_OBPR""")
+    '            If oRecBP.RecordCount > 0 Then
+    '                oRecBP.DoQuery("Select * from ITM1 where ""ItemCode""='" & oTemp.Fields.Item("ItemCode").Value & "' and ""PriceList""=" & oRecBP.Fields.Item("Code").Value)
+    '            Else
+    '                oRecBP.DoQuery("Select * from ITM1 where ""ItemCode""='" & oTemp.Fields.Item("ItemCode").Value & "' and ""PriceList""=11")
+    '            End If
+    '            If oRecBP.RecordCount > 0 Then
+    '                oDRow.Item("Price") = oRecBP.Fields.Item("Price").Value
+    '            Else
+    '                oDRow.Item("Price") = 0
+    '            End If
 
-            'If strToItem = "" Then
-            '    strFromItem = strFromItem & " and  1=1 )"
-            'Else
-            '    strFromItem = strFromItem & " and  ""DocEntry"" <='" & strToItem & "')"
-            'End If
-            'If strSeason = "" Then
-            '    strSeason = " and 1=1"
-            'Else
-            '    strSeason = " and ""U_SEASON""='" & strSeason & "'"
-            'End If
-            'If strBrand = "" Then
-            '    strBrand = " and 1=1"
-            'Else
-            '    strBrand = " and ""U_BRAND""='" & strBrand & "'"
-            'End If
-            '  strSQL = "Select ""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON"" from OITM where " & strFromItem & strSeason & strBrand
-            ' strSQL = "SELECT T1.""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",T2.""U_SEASON"" FROM OPO""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON""R T0  INNER JOIN POR1 T1 ON T0.""DocEntry"" = T1.""DocEntry"" INNER JOIN OITM T2 ON T1.""ItemCode"" = T2.""ItemCode"" where " & strFromItem
-            strSQL = "SELECT T1.""CodeBars"" ""BarCode"",T1.""ItemCode"",""ItemName"",T2.""U_SEASON"",T1.""Quantity"" FROM OPOR T0  INNER JOIN POR1 T1 ON T0.""DocEntry"" = T1.""DocEntry"" INNER JOIN OITM T2 ON T1.""ItemCode"" = T2.""ItemCode"" where " & strFromItem
-        Catch ex As Exception
-            Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-        End Try
+    '            oDRow.Item("Quantity") = 1
+    '            ds.Tables("Barcode").Rows.Add(oDRow)
+    '            oTemp.MoveNext()
+    '        Next
+    '        ' addCrystal(ds, "BarCode")
+    '    End If
+    '    ' oApplication.Utilities.Message("", SAPbouiCOM.BoStatusBarMessageType.smt_None)
+    'End Sub
 
-        oApplication.Utilities.Message("Processing...", SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-        oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oRecBP = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oRecBP.DoQuery(strSQL)
-
-        If 1 = 2 Then ' oRec.RecordCount <= 0 Then
-            oApplication.Utilities.Message("Payroll not generated for selected month and year", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-            Exit Sub
-        Else
-            ds.Clear()
-            ds.Clear()
-            oTemp.DoQuery(strSQL)
-            Dim dblQuantity As Double
-            For introw As Integer = 0 To oTemp.RecordCount - 1
-                dblQuantity = oTemp.Fields.Item("Quantity").Value
-                For intLoop As Integer = 1 To dblQuantity
-
-
-                    oDRow = ds.Tables("Barcode").NewRow()
-                    oDRow.Item("Barcode") = oTemp.Fields.Item("BarCode").Value
-                    oDRow.Item("ItemCode") = oTemp.Fields.Item("ItemCode").Value
-                    oDRow.Item("ItemName") = oTemp.Fields.Item("ItemName").Value
-                    oDRow.Item("Season") = oTemp.Fields.Item("U_SEASON").Value
-                    oDRow.Item("Quantity") = 1 ' oTemp.Fields.Item("Quantity").Value
-                    oRecBP.DoQuery("Select * from ""@Z_OBPR""")
-                    If oRecBP.RecordCount > 0 Then
-                        oRecBP.DoQuery("Select * from ITM1 where ""ItemCode""='" & oTemp.Fields.Item("ItemCode").Value & "' and ""PriceList""=" & oRecBP.Fields.Item("Code").Value)
-                    Else
-                        oRecBP.DoQuery("Select * from ITM1 where ""ItemCode""='" & oTemp.Fields.Item("ItemCode").Value & "' and ""PriceList""=12")
-                    End If
-
-                    If oRecBP.RecordCount > 0 Then
-                        oDRow.Item("Price") = oRecBP.Fields.Item("Price").Value
-                    Else
-                        oDRow.Item("Price") = 0
-                    End If
-
-                    ds.Tables("Barcode").Rows.Add(oDRow)
-                Next
-                oTemp.MoveNext()
-            Next
-            ' addCrystal(ds, "BarCode")
-        End If
-        ' oApplication.Utilities.Message("", SAPbouiCOM.BoStatusBarMessageType.smt_None)
-    End Sub
-
-    Public Sub PrintbarCode_Report(ByVal aform As SAPbouiCOM.Form)
-        Dim oRec, oRecTemp, oRecBP, oBalanceRs, oTemp As SAPbobsCOM.Recordset
-        Dim strfrom, dtPosting, dtdue, dttax, strPaySQL, strto, strBranch, strSlpCode, strSlpName, strSMNo, strFromBP, strToBP, straging, strCardcode, strCardname, strBlock, strCity, strBilltoDef, strZipcode, strAddress, strCounty, strPhone1, strFax, strCntctprsn, strTerrtory, strNotes As String
-        Dim dtFrom, dtTo, dtAging As Date
-        Dim intReportChoice As Integer
-        Dim dblRef1, dblCredit, dblDebit, dblCumulative, dblOpenBalance As Double
-
-        Dim intMonth, intYear As Integer
-        Dim strCode, strSQL, strMonth, strYear, strType, strCmpCode As String
-        Dim oRS As SAPbobsCOM.Recordset
-        Dim dblTotal As Double = 0
-
-        Dim strFromItem, strToItem, strBrand, strSeason As String
-        Dim ostatic As SAPbouiCOM.StaticText
-        Dim oTempRec As SAPbobsCOM.Recordset
-        Try
-            strFromItem = getEditTextvalue(aform, "4")
-            strToItem = getEditTextvalue(aform, "6")
-            Dim oCombo As SAPbouiCOM.ComboBox
-            oCombo = aform.Items.Item("8").Specific
-            Try
-                strSeason = oCombo.Selected.Value ' getEditTextvalue(aform, "8")
-            Catch ex As Exception
-                strSeason = ""
-            End Try
-
-            oCombo = aform.Items.Item("10").Specific
-            Try
-                strBrand = oCombo.Selected.Value ' getEditTextvalue(aform, "10")
-            Catch ex As Exception
-                strBrand = ""
-            End Try
-
-            If strFromItem = "" Then
-                strFromItem = " (1=1"
-            Else
-                strFromItem = "( ""ItemCode"" >='" & strFromItem & "'"
-            End If
-
-            If strToItem = "" Then
-                strFromItem = strFromItem & " and  1=1 )"
-            Else
-                strFromItem = strFromItem & " and  ""ItemCode"" <='" & strToItem & "')"
-            End If
-            If strSeason = "" Then
-                strSeason = " and 1=1"
-            Else
-                strSeason = " and ""U_SEASON""='" & strSeason & "'"
-            End If
-            If strBrand = "" Then
-                strBrand = " and 1=1"
-            Else
-                strBrand = " and ""U_BRAND""='" & strBrand & "'"
-            End If
-            strSQL = "Select ""CodeBars"" ""BarCode"",""ItemCode"",""ItemName"",""U_SEASON"" from OITM where " & strFromItem & strSeason & strBrand
-
-        Catch ex As Exception
-            Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-
-        End Try
-
-        oApplication.Utilities.Message("Processing...", SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-        oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oRecBP = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oRecBP.DoQuery(strSQL)
-
-        If 1 = 2 Then ' oRec.RecordCount <= 0 Then
-            oApplication.Utilities.Message("Payroll not generated for selected month and year", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-            Exit Sub
-        Else
-            ds.Clear()
-            ds.Clear()
-            oTemp.DoQuery(strSQL)
-            For introw As Integer = 0 To oTemp.RecordCount - 1
-                oDRow = ds.Tables("Barcode").NewRow()
-                oDRow.Item("Barcode") = oTemp.Fields.Item("BarCode").Value
-                oDRow.Item("ItemCode") = oTemp.Fields.Item("ItemCode").Value
-                oDRow.Item("ItemName") = oTemp.Fields.Item("ItemName").Value
-                oDRow.Item("Season") = oTemp.Fields.Item("U_SEASON").Value
-
-                ' oRecBP.DoQuery("Select * from ITM1 where ItemCode='" & oTemp.Fields.Item("ItemCode").Value & "' and PriceList=1")
-                oRecBP.DoQuery("Select * from ""@Z_OBPR""")
-                If oRecBP.RecordCount > 0 Then
-                    oRecBP.DoQuery("Select * from ITM1 where ""ItemCode""='" & oTemp.Fields.Item("ItemCode").Value & "' and ""PriceList""=" & oRecBP.Fields.Item("Code").Value)
-                Else
-                    oRecBP.DoQuery("Select * from ITM1 where ""ItemCode""='" & oTemp.Fields.Item("ItemCode").Value & "' and ""PriceList""=11")
-                End If
-                If oRecBP.RecordCount > 0 Then
-                    oDRow.Item("Price") = oRecBP.Fields.Item("Price").Value
-                Else
-                    oDRow.Item("Price") = 0
-                End If
-
-                oDRow.Item("Quantity") = 1
-                ds.Tables("Barcode").Rows.Add(oDRow)
-                oTemp.MoveNext()
-            Next
-            ' addCrystal(ds, "BarCode")
-        End If
-        ' oApplication.Utilities.Message("", SAPbouiCOM.BoStatusBarMessageType.smt_None)
-    End Sub
     'Private Sub addCrystal(ByVal ds1 As DataSet, ByVal aChoice As String)
     '    Dim strFilename, stfilepath As String
     '    Dim strReportFileName As String
@@ -638,6 +721,7 @@ Public Class clsUtilities
     '    End If
 
     'End Sub
+
     Private Sub openFileDialog()
         '  Dim objPL As New frmReportViewer
         'objPL.iniViewer = AddressOf objPL.GenerateReport
@@ -647,39 +731,41 @@ Public Class clsUtilities
         'objPL.ShowDialog()
         'System.Threading.Thread.CurrentThread.Abort()
     End Sub
-    Public Function GenerateBarCode_Bulk(ByVal aItemCode As String, ByVal aBarCode As String) As String
-        Dim ORec As SAPbobsCOM.Recordset
-        Dim aBinCode As String
-        Try
-            ORec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            ORec.DoQuery("Select * from OBCD where ""ItemCode""='" & aItemCode & "'")
-            If ORec.RecordCount > 0 Then
-                ' Message("Barcode already exists", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                Return ""
-            Else
-                ORec.DoQuery("Select isnull(""U_Z_BinCode"",'') from OADM")
-                aBinCode = ORec.Fields.Item(0).Value
-                aBarCode = ""
-                If aBinCode = "" Then
-                    oApplication.Utilities.Message("BinCode not defined in the Company Setup", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                    Return ""
-                Else
-                    ' aBinCode = aBinCode + getmaxBarCode("OBCD", "BcdCode")
-                    aBarCode = GenerateCheckDidgit(aBinCode)
-                End If
-                Return aBarCode
 
-                'If AddBarCode(aItemCode, aBarCode) = True Then
-                '    Return True
-                'Else
-                '    Return False
-                'End If
-            End If
-        Catch ex As Exception
-            Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-            Return False
-        End Try
-    End Function
+    'Public Function GenerateBarCode_Bulk(ByVal aItemCode As String, ByVal aBarCode As String) As String
+    '    Dim ORec As SAPbobsCOM.Recordset
+    '    Dim aBinCode As String
+    '    Try
+    '        ORec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '        ORec.DoQuery("Select * from OBCD where ""ItemCode""='" & aItemCode & "'")
+    '        If ORec.RecordCount > 0 Then
+    '            ' Message("Barcode already exists", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '            Return ""
+    '        Else
+    '            ORec.DoQuery("Select isnull(""U_Z_BinCode"",'') from OADM")
+    '            aBinCode = ORec.Fields.Item(0).Value
+    '            aBarCode = ""
+    '            If aBinCode = "" Then
+    '                oApplication.Utilities.Message("BinCode not defined in the Company Setup", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '                Return ""
+    '            Else
+    '                ' aBinCode = aBinCode + getmaxBarCode("OBCD", "BcdCode")
+    '                aBarCode = GenerateCheckDidgit(aBinCode)
+    '            End If
+    '            Return aBarCode
+
+    '            'If AddBarCode(aItemCode, aBarCode) = True Then
+    '            '    Return True
+    '            'Else
+    '            '    Return False
+    '            'End If
+    '        End If
+    '    Catch ex As Exception
+    '        Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+    '        Return False
+    '    End Try
+    'End Function
+
     Public Function GenerateBarCode(ByVal aItemCode As String, ByVal aBarCode As String) As Boolean
         Dim ORec As SAPbobsCOM.Recordset
         Dim aBinCode As String
@@ -711,7 +797,6 @@ Public Class clsUtilities
         End Try
     End Function
 
-
     Private Function GenerateCheckDidgit(ByVal aNumber As String) As String
         Dim strCheckDigit As String = "0"
         Dim intOdd, intEven, intvalue As Integer
@@ -737,7 +822,6 @@ Public Class clsUtilities
         strCheckDigit = aNumber + intCheckDigit.ToString
         Return strCheckDigit
     End Function
-
 
     Public Function getmaxBarCode(ByVal sTable As String, ByVal sColumn As String) As String
         Dim oRS As SAPbobsCOM.Recordset
@@ -769,6 +853,7 @@ Public Class clsUtilities
             oRS = Nothing
         End Try
     End Function
+
     Public Function AddBarCode(ByVal aItemCode As String, ByVal aBarCode As String, Optional ByVal aUOMEntry As Integer = 0) As Boolean
         Dim lpCmpSer As SAPbobsCOM.ICompanyService
         Dim lpBCSer As SAPbobsCOM.IBarCodesService
@@ -805,51 +890,44 @@ Public Class clsUtilities
             Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
             Return False
         End Try
-
-
-
-
-
         Return True
     End Function
 
-#Region "Update LOC"
-    Public Function GetBankBalance(ByVal aCode As String) As Double
-        Dim oRec, oTest As SAPbobsCOM.Recordset
-        Dim dblTotalLimit, dblUtilizedAmount As Double
-        oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oTest = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oTest.DoQuery("Select isnull(U_CreditLmt,0) 'U_CreditLmt' from DSC1 where BankCode='" & aCode & "'")
-        oRec.DoQuery("Select sum(U_CreditAmt) from [@Z_OSCL] where U_SubBank='" & aCode & "' and U_Status='U'")
-        dblTotalLimit = 0
-        dblUtilizedAmount = 0
-        dblTotalLimit = oTest.Fields.Item("U_CreditLmt").Value
-        dblUtilizedAmount = oRec.Fields.Item(0).Value
-        dblUtilizedAmount = dblTotalLimit - dblUtilizedAmount
-        Return dblUtilizedAmount
-    End Function
+    '#Region "Update LOC"
 
-    Public Sub UpdateBankBalance()
-        Dim oRec, oTest As SAPbobsCOM.Recordset
-        Dim dblTotalLimit, dblUtilizedAmount As Double
-        oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oTest = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oTest.DoQuery("Select * from DSC1")
-        For intRow As Integer = 0 To oTest.RecordCount - 1
-            oRec.DoQuery("Select sum(U_CreditAmt) from [@Z_OSCL] where U_SubBank='" & oTest.Fields.Item("BankCode").Value & "'  and U_Status='U'")
-            dblTotalLimit = 0
-            dblUtilizedAmount = 0
-            dblTotalLimit = oTest.Fields.Item("U_CreditLmt").Value
-            dblUtilizedAmount = oRec.Fields.Item(0).Value
-            dblUtilizedAmount = dblTotalLimit - dblUtilizedAmount
-            oRec.DoQuery("Update DSC1 set U_CreditBal='" & dblUtilizedAmount & "' where BankCode='" & oTest.Fields.Item("BankCode").Value & "'")
-            oTest.MoveNext()
-        Next
+    '    Public Function GetBankBalance(ByVal aCode As String) As Double
+    '        Dim oRec, oTest As SAPbobsCOM.Recordset
+    '        Dim dblTotalLimit, dblUtilizedAmount As Double
+    '        oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '        oTest = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '        oTest.DoQuery("Select isnull(""U_CreditLmt"",0) 'U_CreditLmt' from DSC1 where ""BankCode"" = '" & aCode & "'")
+    '        oRec.DoQuery("Select sum(""U_CreditAmt"") from ""@Z_OSCL"" where ""U_SubBank""='" & aCode & "' and ""U_Status"" = 'U'")
+    '        dblTotalLimit = 0
+    '        dblUtilizedAmount = 0
+    '        dblTotalLimit = oTest.Fields.Item("U_CreditLmt").Value
+    '        dblUtilizedAmount = oRec.Fields.Item(0).Value
+    '        dblUtilizedAmount = dblTotalLimit - dblUtilizedAmount
+    '        Return dblUtilizedAmount
+    '    End Function
 
-
-
-    End Sub
-#End Region
+    '    Public Sub UpdateBankBalance()
+    '        Dim oRec, oTest As SAPbobsCOM.Recordset
+    '        Dim dblTotalLimit, dblUtilizedAmount As Double
+    '        oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '        oTest = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+    '        oTest.DoQuery("Select * from DSC1")
+    '        For intRow As Integer = 0 To oTest.RecordCount - 1
+    '            oRec.DoQuery("Select sum(U_CreditAmt) from [@Z_OSCL] where U_SubBank='" & oTest.Fields.Item("BankCode").Value & "'  and U_Status='U'")
+    '            dblTotalLimit = 0
+    '            dblUtilizedAmount = 0
+    '            dblTotalLimit = oTest.Fields.Item("U_CreditLmt").Value
+    '            dblUtilizedAmount = oRec.Fields.Item(0).Value
+    '            dblUtilizedAmount = dblTotalLimit - dblUtilizedAmount
+    '            oRec.DoQuery("Update DSC1 set U_CreditBal='" & dblUtilizedAmount & "' where BankCode='" & oTest.Fields.Item("BankCode").Value & "'")
+    '            oTest.MoveNext()
+    '        Next
+    '    End Sub
+    '#End Region
 
 #Region "Connect to Company"
     Public Sub Connect()
@@ -874,17 +952,53 @@ Public Class clsUtilities
         End Try
     End Sub
 #End Region
+#Region "GetDocumentQuantity"
+    Public Function getDocumentQuantity(ByVal strQuantity As String) As Double
+        Dim dblQuant As Double
+        Dim strTemp, strTempQuantity As String
+        strTemp = CompanyDecimalSeprator
+        strTempQuantity = strQuantity
+        If strQuantity = "" Then
+            Return 0
+        End If
+        Dim otest As SAPbobsCOM.Recordset
+        otest = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+        otest.DoQuery("select ""CurrCode"",* from OCRN")
+        For introw As Integer = 0 To otest.RecordCount - 1
+            strQuantity = strQuantity.Replace(otest.Fields.Item(0).Value.ToString, "")
+            otest.MoveNext()
+        Next
+        strQuantity = strQuantity.Trim()
+        If CompanyDecimalSeprator <> "." Then
+            If CompanyThousandSeprator <> strTemp Then
+            End If
+            strQuantity = strQuantity.Replace(".", CompanyDecimalSeprator)
+        End If
+        Try
+            dblQuant = Convert.ToDouble(strQuantity)
+        Catch ex As Exception
+            dblQuant = Convert.ToDouble(strTempQuantity)
+        End Try
 
+        Return dblQuant
+    End Function
+#End Region
 #Region "Genral Functions"
 
 #Region "Get MaxCode"
+
     Public Function getMaxCode(ByVal sTable As String, ByVal sColumn As String) As String
         Dim oRS As SAPbobsCOM.Recordset
         Dim MaxCode As Integer
         Dim sCode As String
         Dim strSQL As String
         Try
-            strSQL = "SELECT MAX(CAST(" & sColumn & " AS Numeric)) FROM [" & sTable & "]"
+            If blnIsHana = True Then
+                strSQL = "SELECT MAX(CAST(""" & sColumn & """ AS Numeric)) FROM """ & sTable & """"
+            Else
+                strSQL = "SELECT MAX(CAST(" & sColumn & " AS Numeric)) FROM [" & sTable & "]"
+            End If
+
             ExecuteSQL(oRS, strSQL)
 
             If Convert.ToString(oRS.Fields.Item(0).Value).Length > 0 Then
@@ -901,6 +1015,7 @@ Public Class clsUtilities
             oRS = Nothing
         End Try
     End Function
+
 #End Region
 
 #Region "Status Message"
@@ -1038,7 +1153,7 @@ Public Class clsUtilities
             Dim strsql As String, GetDateFormat As String
             Dim DateSep As Char
 
-            strsql = "Select DateFormat,DateSep from OADM"
+            strsql = "Select ""DateFormat"",""DateSep"" from OADM"
             rsDate = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
             rsDate.DoQuery(strsql)
             DateSep = rsDate.Fields.Item(1).Value
@@ -1083,7 +1198,7 @@ Public Class clsUtilities
             Dim strsql As String
             Dim DateSep As Char
 
-            strsql = "Select DateFormat,DateSep from OADM"
+            strsql = "Select ""DateFormat"",""DateSep"" from OADM"
             rsDate = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
             rsDate.DoQuery(strsql)
             DateSep = rsDate.Fields.Item(1).Value
@@ -1113,6 +1228,7 @@ Public Class clsUtilities
 #End Region
 
 #Region "Get Rental Period"
+
     Public Function getRentalDays(ByVal Date1 As String, ByVal Date2 As String, ByVal IsWeekDaysBilling As Boolean) As Integer
         Dim TotalDays, TotalDaysincSat, TotalBillableDays As Integer
         Dim TotalWeekEnds As Integer
@@ -1527,7 +1643,7 @@ Public Class clsUtilities
                     'TaxGroup = oBP.FederalTaxID
                 End If
             ElseIf oBP.VatLiable = SAPbobsCOM.BoVatStatus.vExempted Then
-                strSQL = "Select Code From OVTG Where Rate = 0 And Category = 'O' Order By Code"
+                strSQL = "Select ""Code"" From OVTG Where Rate = 0 And Category = 'O' Order By Code"
                 Me.ExecuteSQL(rsExempt, strSQL)
                 If rsExempt.RecordCount > 0 Then
                     rsExempt.MoveFirst()
@@ -1537,14 +1653,8 @@ Public Class clsUtilities
                 End If
             End If
         End If
-
-
-
-
         Return TaxGroup
-
     End Function
-
 
     Public Function getApplicableTaxCode(ByVal CardCode As String, ByVal ItemCode As String) As String
         Dim oBP As SAPbobsCOM.BusinessPartners
@@ -1601,6 +1711,7 @@ Public Class clsUtilities
 #End Region
 
 #Region "Log Transaction"
+
     Public Sub LogTransaction(ByVal DocNum As Integer, ByVal ItemCode As String, _
                                     ByVal FromWhs As String, ByVal TransferedQty As Double, ByVal ProcessDate As Date)
         Dim sCode As String
@@ -1661,11 +1772,12 @@ Public Class clsUtilities
     Public Function getLocalCurrency(ByVal strCurrency As String) As Double
         Dim oTemp As SAPbobsCOM.Recordset
         oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oTemp.DoQuery("Select Maincurrncy from OADM")
+        oTemp.DoQuery("Select ""Maincurrncy"" from OADM")
         Return oTemp.Fields.Item(0).Value
     End Function
 
 #Region "Get ExchangeRate"
+
     Public Function getExchangeRate(ByVal strCurrency As String) As Double
         Dim oTemp As SAPbobsCOM.Recordset
         Dim dblExchange As Double
@@ -1693,6 +1805,7 @@ Public Class clsUtilities
         End If
         Return dblExchange
     End Function
+
 #End Region
 
     Public Function GetDateTimeValue(ByVal DateString As String) As DateTime
@@ -1705,7 +1818,7 @@ Public Class clsUtilities
     Public Function GetDocCurrency(ByVal aDocEntry As Integer) As String
         Dim oTemp As SAPbobsCOM.Recordset
         oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-        oTemp.DoQuery("Select DocCur from OINV where docentry=" & aDocEntry)
+        oTemp.DoQuery("Select ""DocCur"" from OINV where ""DocEntry"" =" & aDocEntry)
         Return oTemp.Fields.Item(0).Value
     End Function
 #End Region
@@ -1723,9 +1836,9 @@ Public Class clsUtilities
         Dim strCurrQuery, Currency As String
         Dim oTempCurrency As SAPbobsCOM.Recordset
         If strChoice = "Local" Then
-            strCurrQuery = "Select MainCurncy from OADM"
+            strCurrQuery = "Select ""MainCurncy"" from OADM"
         Else
-            strCurrQuery = "Select Currency from OCRD where CardCode='" & aCardCode & "'"
+            strCurrQuery = "Select ""Currency"" from OCRD where ""CardCode"" = '" & aCardCode & "'"
         End If
         oTempCurrency = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
         oTempCurrency.DoQuery(strCurrQuery)

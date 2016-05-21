@@ -24,6 +24,9 @@ Public Class clsStart
             End If
             oApplication.Utilities.CreateTables()
             oApplication.Utilities.AddRemoveMenus("Menu.xml")
+            Dim omenuItem As SAPbouiCOM.MenuItem
+            omenuItem = oApplication.SBO_Application.Menus.Item("Menu_P01")
+            omenuItem.Image = Application.StartupPath & "\Procons.bmp"
             oApplication.Utilities.createPayrollMainAuthorization()
             oApplication.Utilities.AuthorizationCreation()
             oApplication.Utilities.Message("Project Estimation Addon Connected Successfully..", SAPbouiCOM.BoStatusBarMessageType.smt_Success)

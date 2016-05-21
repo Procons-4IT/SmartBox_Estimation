@@ -1,4 +1,4 @@
-﻿Public Class clsBomReference
+﻿Public Class clsBoMSecondLevelref
     Inherits clsBase
 
     Private oMatrix As SAPbouiCOM.Matrix
@@ -23,7 +23,7 @@
     End Sub
     Public Sub LoadForm(aCode As String, aRefno As String, aItemName As String)
         Try
-            oForm = oApplication.Utilities.LoadForm(xml_BOMRef, frm_BOMRef)
+            oForm = oApplication.Utilities.LoadForm(xml_BOMRef1, frm_BOMRef1)
             oForm = oApplication.SBO_Application.Forms.ActiveForm()
             oApplication.Utilities.setEdittextvalue(oForm, "4", aCode)
             oApplication.Utilities.setEdittextvalue(oForm, "5", aItemName)
@@ -41,8 +41,8 @@
         Dim s, aRefNo, aItemCode As String
         aRefNo = oApplication.Utilities.getEditTextvalue(aform, "7")
         aItemCode = oApplication.Utilities.getEditTextvalue(aform, "4")
-        s = "SELECT T0.""Code"", T0.""Name"", T0.""U_Z_Type"", T0.""U_Z_ItemCode"", T0.""U_Z_ItemName"",T0.""U_Z_BaseQty"", T0.""U_Z_UoM"", T0.""U_Z_WhsCode"", T0.""U_Z_PlnList"",  T0.""U_Z_Cost"", T0.""U_Z_TotalCost"", T0.""U_Z_Remarks"", T0.""U_Z_PHRef"",T0.""U_Z_PHSRef"" FROM ""@Z_PRPH2""  T0"
-        s = s & " where ""U_Z_PHRef""='" & aRefno & "'"
+        s = "SELECT T0.""Code"", T0.""Name"", T0.""U_Z_Type"", T0.""U_Z_ItemCode"", T0.""U_Z_ItemName"",T0.""U_Z_BaseQty"", T0.""U_Z_UoM"", T0.""U_Z_WhsCode"", T0.""U_Z_PlnList"",  T0.""U_Z_Cost"", T0.""U_Z_TotalCost"", T0.""U_Z_Remarks"", T0.""U_Z_PHRef"" FROM ""@Z_PRPH3""  T0"
+        s = s & " where ""U_Z_PHRef""='" & aRefNo & "'"
         ogrid.DataTable.ExecuteQuery(s)
         FormatGrid(ogrid)
         oApplication.Utilities.AssignRowNo(ogrid)
@@ -94,8 +94,7 @@
         Next
         oComboColumn.DisplayType = SAPbouiCOM.BoComboDisplayType.cdt_Description
         ogrid.Columns.Item("U_Z_PHRef").Visible = False
-        ogrid.Columns.Item("U_Z_PHSRef").TitleObject.Caption = "Ref"
-        ogrid.Columns.Item("U_Z_PHSRef").Editable = False
+
         ogrid.AutoResizeColumns()
         ogrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_Single
     End Sub
@@ -111,7 +110,7 @@
 #Region "Item Event"
     Public Overrides Sub ItemEvent(ByVal FormUID As String, ByRef pVal As SAPbouiCOM.ItemEvent, ByRef BubbleEvent As Boolean)
         Try
-            If pVal.FormTypeEx = frm_BOMRef Then
+            If pVal.FormTypeEx = frm_BOMRef1 Then
                 Select Case pVal.BeforeAction
                     Case True
                         Select Case pVal.EventType
@@ -168,7 +167,7 @@
                                     If pVal.ColUID = "U_Z_PlnList" Then
                                         ogrid = oForm.Items.Item("8").Specific
                                         If ogrid.DataTable.GetValue("U_Z_Type", pVal.Row) = "4" Then
-                                           
+
                                         Else
                                             BubbleEvent = False
                                             Exit Sub
@@ -183,36 +182,34 @@
 
                             Case SAPbouiCOM.BoEventTypes.et_DOUBLE_CLICK
                                 oForm = oApplication.SBO_Application.Forms.Item(FormUID)
-                                If pVal.ItemUID = "8" And pVal.Row >= 0 And pVal.ColUID = "U_Z_PHSRef" Then
-                                    Dim strCode, strRef As String
-                                    ogrid = oForm.Items.Item("8").Specific
-                                    Dim achoice As String
-                                    If ogrid.DataTable.GetValue("U_Z_Type", pVal.Row) = "4" Then
-                                        Dim businessObject As SAPbobsCOM.Recordset = DirectCast(modVariables.oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
-                                        businessObject.DoQuery(("Select * from OITM where ""ItemCode""='" & ogrid.DataTable.GetValue("U_Z_ItemCode", pVal.Row) & "'"))
-                                        If (businessObject.Fields.Item("TreeType").Value <> "N") Then
-                                            If ogrid.DataTable.GetValue("U_Z_PHSRef", pVal.Row) = "" Then
-                                                strCode = oApplication.Utilities.getMaxCode("@Z_PRES1", "Code")
-                                                Dim oTemp1 As SAPbobsCOM.Recordset
-                                                oTemp1 = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-                                                oTemp1.DoQuery("Insert into ""@Z_PRES1"" values ('" & strCode & "','" & strCode & "','PHS')")
-                                                achoice = strCode
-                                            Else
-                                                achoice = ogrid.DataTable.GetValue("U_Z_PHSRef", pVal.Row)
-                                            End If
-                                            ogrid.DataTable.SetValue("U_Z_PHSRef", pVal.Row, achoice)
-                                            Dim strBOMItem As String = ogrid.DataTable.GetValue("U_Z_ItemCode", pVal.Row)
-                                            Dim strBomName As String = ogrid.DataTable.GetValue("U_Z_ItemName", pVal.Row)
-                                            strCode = oApplication.Utilities.getEditTextvalue(oForm, "7")
-                                            strRef = achoice
-                                            Dim oOBj As New clsBoMSecondLevelref
-                                            frm_SourceBoM1 = oForm
-                                            frm_SourceProjectPhase1 = oForm
-                                            frm_ProjectPhaseRow1 = pVal.Row
-                                            oOBj.LoadForm(strBOMItem, achoice, strBomName)
-                                        End If
-                                    End If
-                                End If
+                                'If pVal.ItemUID = "8" And pVal.Row > 0 Then
+                                '    Dim strCode, strRef As String
+                                '    ogrid = oForm.Items.Item("8").Specific
+                                '    Dim achoice As String
+                                '    If ogrid.DataTable.GetValue("U_Z_PHSRef", pVal.Row) = "" Then
+                                '        strCode = oApplication.Utilities.getMaxCode("@Z_PRES1", "Code")
+                                '        Dim oTemp1 As SAPbobsCOM.Recordset
+                                '        oTemp1 = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+                                '        oTemp1.DoQuery("Insert into ""@Z_PRES1"" values ('" & strCode & "','" & strCode & "','PHS')")
+                                '        achoice = strCode
+                                '    Else
+                                '        achoice = ogrid.DataTable.GetValue("U_Z_PHSRef", pVal.Row)
+                                '    End If
+                                '    strCode = oApplication.Utilities.getMatrixValues(oMatrix, "V_0", pVal.Row)
+                                '    strRef = oApplication.Utilities.getMatrixValues(oMatrix, "V_6", pVal.Row)
+                                '    Dim businessObject As SAPbobsCOM.Recordset = DirectCast(modVariables.oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+                                '    businessObject.DoQuery(("Select * from OITM where ""ItemCode""='" & strCode & "'"))
+                                '    Me.oCombobox = DirectCast(Me.oMatrix.Columns.Item("V_10").Cells.Item(pVal.Row).Specific, SAPbouiCOM.ComboBox)
+                                '    If ((Me.oCombobox.Selected.Value = "4") And (businessObject.Fields.Item("TreeType").Value <> "N")) Then
+                                '        strRef = AddtoUDT_Initialize(strCode, strRef)
+                                '        oApplication.Utilities.SetMatrixValues(oMatrix, "V_6", pVal.Row, strRef)
+                                '        Dim oOBj As New clsBomReference
+                                '        frm_SourceBoM = oForm
+                                '        frm_SourceProjectPhase = oForm
+                                '        frm_ProjectPhaseRow = pVal.Row
+                                '        oOBj.LoadForm(strCode, strRef, oApplication.Utilities.getMatrixValues(oMatrix, "V_1", pVal.Row))
+                                '    End If
+                                'End If
 
                             Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
                                 If pVal.ItemUID = "8" Then
@@ -259,19 +256,19 @@
                                     End If
                                     If AddtoUDT_Initialize(oForm) = True Then
                                         Dim strRef As String = oApplication.Utilities.getEditTextvalue(oForm, "7")
-                                        oMatrix = frm_SourceProjectPhase.Items.Item("14").Specific
-                                        oApplication.Utilities.SetMatrixValues(oMatrix, "V_6", frm_ProjectPhaseRow, oApplication.Utilities.getEditTextvalue(oForm, "7"))
-                                        Dim oTem1 As SAPbobsCOM.Recordset
-                                        oTem1 = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-                                        oTem1.DoQuery("Select sum(""U_Z_TotalCost"") from ""@Z_PRPH2"" where ""U_Z_PHRef""='" & strRef & "'")
-                                        oApplication.Utilities.SetMatrixValues(oMatrix, "V_3", frm_ProjectPhaseRow, oTem1.Fields.Item(0).Value)
-                                        Dim dblUnitPrice, dblQuantity, dblPercentage As Double
-                                        dblUnitPrice = oApplication.Utilities.getMatrixValues(oMatrix, "V_3", frm_ProjectPhaseRow)
-                                        dblQuantity = oApplication.Utilities.getMatrixValues(oMatrix, "V_2", frm_ProjectPhaseRow)
-                                        dblPercentage = oApplication.Utilities.getMatrixValues(oMatrix, "V_4", frm_ProjectPhaseRow)
-                                        dblQuantity = (dblUnitPrice * dblQuantity)
-                                        dblQuantity = dblQuantity + (dblQuantity * dblPercentage / 100)
-                                        oApplication.Utilities.SetMatrixValues(oMatrix, "V_5", frm_ProjectPhaseRow, dblQuantity)
+                                        'oMatrix = frm_SourceProjectPhase.Items.Item("14").Specific
+                                        'oApplication.Utilities.SetMatrixValues(oMatrix, "V_6", frm_ProjectPhaseRow, oApplication.Utilities.getEditTextvalue(oForm, "7"))
+                                        'Dim oTem1 As SAPbobsCOM.Recordset
+                                        'oTem1 = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
+                                        'oTem1.DoQuery("Select sum(""U_Z_TotalCost"") from ""@Z_PRPH2"" where ""U_Z_PHRef""='" & strRef & "'")
+                                        'oApplication.Utilities.SetMatrixValues(oMatrix, "V_3", frm_ProjectPhaseRow, oTem1.Fields.Item(0).Value)
+                                        'Dim dblUnitPrice, dblQuantity, dblPercentage As Double
+                                        'dblUnitPrice = oApplication.Utilities.getMatrixValues(oMatrix, "V_3", frm_ProjectPhaseRow)
+                                        'dblQuantity = oApplication.Utilities.getMatrixValues(oMatrix, "V_2", frm_ProjectPhaseRow)
+                                        'dblPercentage = oApplication.Utilities.getMatrixValues(oMatrix, "V_4", frm_ProjectPhaseRow)
+                                        'dblQuantity = (dblUnitPrice * dblQuantity)
+                                        'dblQuantity = dblQuantity + (dblQuantity * dblPercentage / 100)
+                                        'oApplication.Utilities.SetMatrixValues(oMatrix, "V_5", frm_ProjectPhaseRow, dblQuantity)
                                         oForm.Close()
                                     End If
                                 End If
@@ -340,8 +337,8 @@
         ItemCode = oApplication.Utilities.getEditTextvalue(aform, "4")
         aCHoice = oApplication.Utilities.getEditTextvalue(aform, "7")
         If 1 = 1 Then
-            strCode = oApplication.Utilities.getMaxCode("@Z_PRES", "Code")
-            oUserTable = oApplication.Company.UserTables.Item("Z_PRPH2")
+            strCode = oApplication.Utilities.getMaxCode("@Z_PRPH3", "Code")
+            oUserTable = oApplication.Company.UserTables.Item("Z_PRPH3")
             ogrid = aform.Items.Item("8").Specific
             For intLoop As Integer = 0 To ogrid.DataTable.Rows.Count - 1
                 If ogrid.DataTable.GetValue("Code", intLoop) <> "" Then
@@ -363,13 +360,13 @@
                     oUserTable.UserFields.Fields.Item("U_Z_TotalCost").Value = ogrid.DataTable.GetValue("U_Z_BaseQty", intLoop) * ogrid.DataTable.GetValue("U_Z_Cost", intLoop)
                     oUserTable.UserFields.Fields.Item("U_Z_Remarks").Value = ogrid.DataTable.GetValue("U_Z_Remarks", intLoop)
                     oUserTable.UserFields.Fields.Item("U_Z_UoM").Value = ogrid.DataTable.GetValue("U_Z_UoM", intLoop)
-                    oUserTable.UserFields.Fields.Item("U_Z_PHSRef").Value = ogrid.DataTable.GetValue("U_Z_PHSRef", intLoop)
+                    '  oUserTable.UserFields.Fields.Item("U_Z_PHSRef").Value = ogrid.DataTable.GetValue("U_Z_PHSRef", intLoop)
                     If oUserTable.Update <> 0 Then
                         oApplication.Utilities.Message(oApplication.Company.GetLastErrorDescription, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                     End If
                 Else
                     strCode = ogrid.DataTable.GetValue("Code", intLoop)
-                    strCode = oApplication.Utilities.getMaxCode("@Z_PRPH2", "Code")
+                    strCode = oApplication.Utilities.getMaxCode("@Z_PRPH3", "Code")
                     oUserTable.Code = strCode
                     oUserTable.Name = strCode
                     oUserTable.UserFields.Fields.Item("U_Z_RItemCode").Value = ItemCode
@@ -385,7 +382,7 @@
                     oUserTable.UserFields.Fields.Item("U_Z_TotalCost").Value = ogrid.DataTable.GetValue("U_Z_BaseQty", intLoop) * ogrid.DataTable.GetValue("U_Z_Cost", intLoop)
                     oUserTable.UserFields.Fields.Item("U_Z_Remarks").Value = ogrid.DataTable.GetValue("U_Z_Remarks", intLoop)
                     oUserTable.UserFields.Fields.Item("U_Z_UoM").Value = ogrid.DataTable.GetValue("U_Z_UoM", intLoop)
-                    oUserTable.UserFields.Fields.Item("U_Z_PHSRef").Value = ogrid.DataTable.GetValue("U_Z_PHSRef", intLoop)
+                    '    oUserTable.UserFields.Fields.Item("U_Z_PHSRef").Value = ogrid.DataTable.GetValue("U_Z_PHSRef", intLoop)
                     If oUserTable.Add <> 0 Then
                         oApplication.Utilities.Message(oApplication.Company.GetLastErrorDescription, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                     End If
@@ -393,7 +390,7 @@
                 End If
             Next
         End If
-        otemp1.DoQuery("Delete  from ""@Z_PRPH2"" where ""Name"" Like '%_XD' and ""U_Z_PHRef""='" & aCHoice & "'")
+        otemp1.DoQuery("Delete  from ""@Z_PRPH3"" where ""Name"" Like '%_XD' and ""U_Z_PHRef""='" & aCHoice & "'")
         Return True
     End Function
 

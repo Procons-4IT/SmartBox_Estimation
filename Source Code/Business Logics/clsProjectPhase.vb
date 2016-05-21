@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Data
 Public Class clsProjectPhase
     Inherits clsBase
 
@@ -21,6 +22,9 @@ Public Class clsProjectPhase
     Public intSelectedMatrixrow As Integer = 0
     Private RowtoDelete As Integer
     Dim oDataSrc_Line, oDataSrc_Line3 As SAPbouiCOM.DBDataSource
+    Private oDBDataSourceLines_1 As SAPbouiCOM.DBDataSource
+
+
 
     Public Sub New()
         MyBase.New()
@@ -53,7 +57,7 @@ Public Class clsProjectPhase
             oColumn.ColumnSetting.SumType = SAPbouiCOM.BoColumnSumType.bst_Auto
             oColumn = oMatrix.Columns.Item("V_3")
             oColumn.ColumnSetting.SumType = SAPbouiCOM.BoColumnSumType.bst_Auto
-
+            oMatrix.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_Single
             oForm.Items.Item("4").Click(SAPbouiCOM.BoCellClickType.ct_Regular)
             oForm.PaneLevel = 1
             oForm.Freeze(False)
@@ -119,20 +123,47 @@ Public Class clsProjectPhase
 
     Private Sub addChooseFromListConditions(ByVal oForm As SAPbouiCOM.Form)
         Try
-            Dim oCFLs As SAPbouiCOM.ChooseFromListCollection
-            Dim oCons As SAPbouiCOM.Conditions
-            Dim oCon As SAPbouiCOM.Condition
-            Dim oCFL As SAPbouiCOM.ChooseFromList
 
-            oCFLs = oForm.ChooseFromLists
+            Dim chooseFromLists As SAPbouiCOM.ChooseFromListCollection = oForm.ChooseFromLists
+            Dim list As SAPbouiCOM.ChooseFromList = chooseFromLists.Item("CFL_2")
+            Dim pConditions As SAPbouiCOM.Conditions = list.GetConditions
+            Dim condition As SAPbouiCOM.Condition = pConditions.Add
+            condition.Alias = "frozenFor"
+            condition.Operation = SAPbouiCOM.BoConditionOperation.co_EQUAL
+            condition.CondVal = "N"
+            list.SetConditions(pConditions)
 
-            oCFL = oCFLs.Item("CFL_2")
-            oCons = oCFL.GetConditions()
-            oCon = oCons.Add()
-            oCon.Alias = "TreeType"
-            oCon.Operation = SAPbouiCOM.BoConditionOperation.co_NOT_EQUAL
-            oCon.CondVal = "N"
-            oCFL.SetConditions(oCons)
+            list = chooseFromLists.Item("CFL_4")
+            pConditions = list.GetConditions
+            condition = pConditions.Add
+            condition.Alias = "TreeType"
+            condition.Operation = SAPbouiCOM.BoConditionOperation.co_NOT_EQUAL
+            condition.CondVal = "N"
+            list.SetConditions(pConditions)
+
+
+            list = chooseFromLists.Item("CFL_7")
+            pConditions = list.GetConditions
+            condition = pConditions.Add
+            condition.Alias = "CardType"
+            condition.Operation = SAPbouiCOM.BoConditionOperation.co_EQUAL
+            condition.CondVal = "C"
+            list.SetConditions(pConditions)
+
+            'Dim oCFLs As SAPbouiCOM.ChooseFromListCollection
+            'Dim oCons As SAPbouiCOM.Conditions
+            'Dim oCon As SAPbouiCOM.Condition
+            'Dim oCFL As SAPbouiCOM.ChooseFromList
+
+            'oCFLs = oForm.ChooseFromLists
+
+            'oCFL = oCFLs.Item("CFL_2")
+            'oCons = oCFL.GetConditions()
+            'oCon = oCons.Add()
+            'oCon.Alias = "TreeType"
+            'oCon.Operation = SAPbouiCOM.BoConditionOperation.co_NOT_EQUAL
+            'oCon.CondVal = "N"
+            'oCFL.SetConditions(oCons)
 
             'oCFL = oCFLs.Item("CFL_3")
             'oCons = oCFL.GetConditions()
@@ -187,32 +218,61 @@ Public Class clsProjectPhase
             oUserTable = oApplication.Company.UserTables.Item("Z_PRPH2")
             'otemp1.DoQuery("Select Sum(U_AVGCOST) from ITT1 T0 where Father='" & ItemCode & "' and Type=4")
             strqry1 = "SELECT T1.""Code"",T0.""Type"",T0.""Code"" ""ItemCode"", T2.""ItemName"", T0.""Quantity"", T0.""Warehouse"", T0.""Price"", T0.""PriceList"",  T2.""InvntryUom"", T0.""Comment"" FROM ITT1 T0  INNER JOIN OITT T1 ON T0.""Father"" = T1.""Code"" INNER JOIN OITM T2 ON T0.""Code"" = T2.""ItemCode"""
-            strqry1 = strqry1 & " where T1.""Code""='" & ItemCode & "'"
+            strqry1 = strqry1 & " where T0.""Type""= 4 and T1.""Code""='" & ItemCode & "'"
             otemp1.DoQuery(strqry1)
             For intLoop As Integer = 0 To otemp1.RecordCount - 1
-           
-            strCode = oApplication.Utilities.getMaxCode("@Z_PRPH2", "Code")
-            oUserTable.Code = strCode
-            oUserTable.Name = strCode
-            oUserTable.UserFields.Fields.Item("U_Z_RItemCode").Value = ItemCode
-            oUserTable.UserFields.Fields.Item("U_Z_PHRef").Value = aChoice
 
-            '  otemp1.DoQuery("Select *  from ITT1 T0  Inner Join  OITT T1 on T0.""Father"" = T1.""Code""   where ""Father"" ='" & ItemCode & "'")
-            oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = otemp1.Fields.Item("ItemCode").Value
-            oUserTable.UserFields.Fields.Item("U_Z_ItemName").Value = otemp1.Fields.Item("ItemName").Value
-            oUserTable.UserFields.Fields.Item("U_Z_Type").Value = otemp1.Fields.Item("Type").Value.ToString
-            oUserTable.UserFields.Fields.Item("U_Z_BaseQty").Value = otemp1.Fields.Item("Quantity").Value
-            oUserTable.UserFields.Fields.Item("U_Z_PlnList").Value = otemp1.Fields.Item("PriceList").Value.ToString
-            oUserTable.UserFields.Fields.Item("U_Z_WhsCode").Value = otemp1.Fields.Item("Warehouse").Value
-            oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item("Price").Value
-            oUserTable.UserFields.Fields.Item("U_Z_TotalCost").Value = otemp1.Fields.Item("Price").Value * otemp1.Fields.Item("Quantity").Value
-            oUserTable.UserFields.Fields.Item("U_Z_Remarks").Value = otemp1.Fields.Item("Comment").Value
-            oUserTable.UserFields.Fields.Item("U_Z_UoM").Value = otemp1.Fields.Item("InvntryUom").Value
-            If oUserTable.Add <> 0 Then
-                oApplication.Utilities.Message(oApplication.Company.GetLastErrorDescription, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                strCode = oApplication.Utilities.getMaxCode("@Z_PRPH2", "Code")
+                oUserTable.Code = strCode
+                oUserTable.Name = strCode
+                oUserTable.UserFields.Fields.Item("U_Z_RItemCode").Value = ItemCode
+                oUserTable.UserFields.Fields.Item("U_Z_PHRef").Value = aChoice
+                '  otemp1.DoQuery("Select *  from ITT1 T0  Inner Join  OITT T1 on T0.""Father"" = T1.""Code""   where ""Father"" ='" & ItemCode & "'")
+                oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = otemp1.Fields.Item("ItemCode").Value
+                oUserTable.UserFields.Fields.Item("U_Z_ItemName").Value = otemp1.Fields.Item("ItemName").Value
+                oUserTable.UserFields.Fields.Item("U_Z_Type").Value = otemp1.Fields.Item("Type").Value.ToString
+                oUserTable.UserFields.Fields.Item("U_Z_BaseQty").Value = otemp1.Fields.Item("Quantity").Value
+                oUserTable.UserFields.Fields.Item("U_Z_PlnList").Value = otemp1.Fields.Item("PriceList").Value.ToString
+                oUserTable.UserFields.Fields.Item("U_Z_WhsCode").Value = otemp1.Fields.Item("Warehouse").Value
+                oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item("Price").Value
+                oUserTable.UserFields.Fields.Item("U_Z_TotalCost").Value = otemp1.Fields.Item("Price").Value * otemp1.Fields.Item("Quantity").Value
+                oUserTable.UserFields.Fields.Item("U_Z_Remarks").Value = otemp1.Fields.Item("Comment").Value
+                oUserTable.UserFields.Fields.Item("U_Z_UoM").Value = otemp1.Fields.Item("InvntryUom").Value
+                If oUserTable.Add <> 0 Then
+                    oApplication.Utilities.Message(oApplication.Company.GetLastErrorDescription, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                 End If
                 otemp1.MoveNext()
             Next
+
+            strqry1 = "SELECT T1.""Code"",T0.""Type"",T0.""Code"" ""ItemCode"", T2.""ItemName"", T0.""Quantity"", T0.""Warehouse"", T0.""Price"", T0.""PriceList"",  T2.""InvntryUom"", T0.""Comment"" FROM ITT1 T0  INNER JOIN OITT T1 ON T0.""Father"" = T1.""Code"" INNER JOIN OITM T2 ON T0.""Code"" = T2.""ItemCode"""
+            strqry1 = strqry1 & " where T0.""Type""= 4 and T1.""Code""='" & ItemCode & "'"
+
+            strqry1 = "SELECT T1.""Code"",T0.""Type"",T0.""Code"" ""ItemCode"", T2.""ResName"" ""ItemName"", T0.""Quantity"", T0.""Warehouse"", T0.""Price"", '' ""PriceList"",  '' ""InvntryUom"", T0.""Comment"" FROM ITT1 T0  INNER JOIN OITT T1 ON T0.""Father"" = T1.""Code"" INNER JOIN ORSC T2 ON T0.""Code"" = T2.""VisResCode"""
+            strqry1 = (strqry1 & " where T0.""Type""=290 and T1.""Code""='" & ItemCode & "'")
+            otemp1.DoQuery(strqry1)
+            For intLoop As Integer = 0 To otemp1.RecordCount - 1
+                strCode = oApplication.Utilities.getMaxCode("@Z_PRPH2", "Code")
+                oUserTable.Code = strCode
+                oUserTable.Name = strCode
+                oUserTable.UserFields.Fields.Item("U_Z_RItemCode").Value = ItemCode
+                oUserTable.UserFields.Fields.Item("U_Z_PHRef").Value = aChoice
+                '  otemp1.DoQuery("Select *  from ITT1 T0  Inner Join  OITT T1 on T0.""Father"" = T1.""Code""   where ""Father"" ='" & ItemCode & "'")
+                oUserTable.UserFields.Fields.Item("U_Z_ItemCode").Value = otemp1.Fields.Item("ItemCode").Value
+                oUserTable.UserFields.Fields.Item("U_Z_ItemName").Value = otemp1.Fields.Item("ItemName").Value
+                oUserTable.UserFields.Fields.Item("U_Z_Type").Value = otemp1.Fields.Item("Type").Value.ToString
+                oUserTable.UserFields.Fields.Item("U_Z_BaseQty").Value = otemp1.Fields.Item("Quantity").Value
+                oUserTable.UserFields.Fields.Item("U_Z_PlnList").Value = otemp1.Fields.Item("PriceList").Value.ToString
+                oUserTable.UserFields.Fields.Item("U_Z_WhsCode").Value = otemp1.Fields.Item("Warehouse").Value
+                oUserTable.UserFields.Fields.Item("U_Z_Cost").Value = otemp1.Fields.Item("Price").Value
+                oUserTable.UserFields.Fields.Item("U_Z_TotalCost").Value = otemp1.Fields.Item("Price").Value * otemp1.Fields.Item("Quantity").Value
+                oUserTable.UserFields.Fields.Item("U_Z_Remarks").Value = otemp1.Fields.Item("Comment").Value
+                oUserTable.UserFields.Fields.Item("U_Z_UoM").Value = otemp1.Fields.Item("InvntryUom").Value
+                If oUserTable.Add <> 0 Then
+                    oApplication.Utilities.Message(oApplication.Company.GetLastErrorDescription, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                End If
+                otemp1.MoveNext()
+            Next
+
         End If
         Return aChoice
     End Function
@@ -264,6 +324,63 @@ Public Class clsProjectPhase
         Return aChoice
     End Function
 
+    Private Sub populateBoMDetails(ByVal aform As SAPbouiCOM.Form)
+        Try
+            Dim num As Double
+            aform.Freeze(True)
+            Try
+                num = oApplication.Utilities.getDocumentQuantity(modVariables.oApplication.Utilities.getEditTextvalue(MyBase.oForm, "12"))
+            Catch exception1 As Exception
+                oApplication.Utilities.Message(exception1.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                num = 1
+            End Try
+            Me.oDBDataSourceLines_1 = MyBase.oForm.DataSources.DBDataSources.Item("@Z_PRPH1")
+            Dim str As String = modVariables.oApplication.Utilities.getEditTextvalue(aform, "22")
+            If (((str <> "") AndAlso (MyBase.oForm.Mode = SAPbouiCOM.BoFormMode.fm_ADD_MODE)) AndAlso (str <> "")) Then
+                Me.oMatrix = DirectCast(aform.Items.Item("14").Specific, SAPbouiCOM.Matrix)
+                Me.oMatrix.Clear()
+                Dim queryStr As String = (("SELECT  ""Type"",""Code"",T1.""ItemName"" ""Name"",""Quantity"",""Price""  FROM ITT1 T0 inner Join OITM T1 on T1.""ItemCode""=T0.""Code"" where (T0.""Type""='4' or T0.""Type""='290') and   T0.""Father""='" & str & "'") & " Union SELECT ""Type"",T0.""VisResCode"" ""Code"", T0.""ResName"" ""Name"" ,T1.""Quantity"",T1.""Price""  FROM ORSC T0 Inner Join ITT1 T1 on T0.""VisResCode""=T1.""Code"" where ""Type""=290 and   T1.""Father""='" & str & "'")
+                Dim businessObject As SAPbobsCOM.Recordset = DirectCast(modVariables.oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+                businessObject.DoQuery(queryStr)
+                Dim recordCount As Integer = businessObject.RecordCount
+                If (recordCount > 0) Then
+                    Me.oMatrix.AddRow(recordCount, -1)
+                End If
+                Me.oMatrix.FlushToDataSource()
+                Me.oMatrix.LoadFromDataSource()
+                businessObject.DoQuery(queryStr)
+                Dim num8 As Integer = (businessObject.RecordCount - 1)
+                Dim i As Integer = 0
+                Do While (i <= num8)
+                    Me.oDBDataSourceLines_1.SetValue("LineId", i, (i + 1).ToString)
+                    Me.oDBDataSourceLines_1.SetValue("U_Z_Type", i, (businessObject.Fields.Item("Type").Value).ToString)
+                    Me.oDBDataSourceLines_1.SetValue("U_Z_ItemCode", i, Convert.ToString(businessObject.Fields.Item("Code").Value))
+                    Me.oDBDataSourceLines_1.SetValue("U_Z_ItemName", i, Convert.ToString(businessObject.Fields.Item("Name").Value))
+                    Me.oDBDataSourceLines_1.SetValue("U_Z_BaseQty", i, Convert.ToString(businessObject.Fields.Item("Quantity").Value))
+                    Me.oDBDataSourceLines_1.SetValue("U_Z_Cost", i, Convert.ToString(businessObject.Fields.Item("Price").Value))
+                    Me.oDBDataSourceLines_1.SetValue("U_Z_Margin", i, Convert.ToString(num))
+                    Me.oDBDataSourceLines_1.SetValue("U_Z_BaseQty", i, Convert.ToString(businessObject.Fields.Item("Quantity").Value))
+                    Dim num4 As Double = Convert.ToDouble(businessObject.Fields.Item("Price").Value)
+                    Dim num3 As Double = Convert.ToDouble(businessObject.Fields.Item("Quantity").Value)
+                    Dim num2 As Double = num
+                    num3 = (num4 * num3)
+                    num3 = (num3 + ((num3 * num2) / 100))
+                    Me.oDBDataSourceLines_1.SetValue("U_Z_TotalCost", i, Convert.ToString(num3))
+                    Me.oDBDataSourceLines_1.SetValue("U_Z_BoMRef", i, "")
+                    businessObject.MoveNext()
+                    i += 1
+                Loop
+                Me.oMatrix.LoadFromDataSource()
+                Me.oMatrix.FlushToDataSource()
+            End If
+            aform.Freeze(False)
+        Catch exception3 As Exception
+            oApplication.Utilities.Message(exception3.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+            Dim exception2 As Exception = exception3
+            aform.Freeze(False)
+        End Try
+    End Sub
+
 #Region "Item Event"
     Public Overrides Sub ItemEvent(ByVal FormUID As String, ByRef pVal As SAPbouiCOM.ItemEvent, ByRef BubbleEvent As Boolean)
         Try
@@ -290,7 +407,30 @@ Public Class clsProjectPhase
                                     intSelectedMatrixrow = pVal.Row
                                     Me.MatrixId = pVal.ItemUID
                                     frmSourceMatrix = oMatrix
+                                    If (pVal.ColUID = "V_3") Then
+                                        Me.oCombobox = DirectCast(Me.oMatrix.Columns.Item("V_10").Cells.Item(pVal.Row).Specific, SAPbouiCOM.ComboBox)
+                                        If (Me.oCombobox.Selected.Value = "4") Then
+                                            BubbleEvent = False
+                                        End If
+                                    End If
                                 End If
+
+                            Case SAPbouiCOM.BoEventTypes.et_CHOOSE_FROM_LIST
+                                If ((pVal.ItemUID = "14") AndAlso (pVal.ColUID = "V_0")) Then
+                                    Dim column As SAPbouiCOM.Column
+                                    Me.oMatrix = DirectCast(MyBase.oForm.Items.Item("14").Specific, SAPbouiCOM.Matrix)
+                                    Me.oCombobox = DirectCast(Me.oMatrix.Columns.Item("V_10").Cells.Item(pVal.Row).Specific, SAPbouiCOM.ComboBox)
+                                    If (Me.oCombobox.Selected.Value = "4") Then
+                                        column = Me.oMatrix.Columns.Item(pVal.ColUID)
+                                        column.ChooseFromListUID = "CFL_2"
+                                        column.ChooseFromListAlias = "ItemCode"
+                                    Else
+                                        column = Me.oMatrix.Columns.Item(pVal.ColUID)
+                                        column.ChooseFromListUID = "CFL_5"
+                                        column.ChooseFromListAlias = "VisResCode"
+                                    End If
+                                End If
+
                         End Select
                     Case False
                         Select Case pVal.EventType
@@ -305,13 +445,18 @@ Public Class clsProjectPhase
                                     oMatrix = oForm.Items.Item("14").Specific
                                     strCode = oApplication.Utilities.getMatrixValues(oMatrix, "V_0", pVal.Row)
                                     strRef = oApplication.Utilities.getMatrixValues(oMatrix, "V_6", pVal.Row)
-                                    strRef = AddtoUDT_Initialize(strCode, strRef)
-                                    oApplication.Utilities.SetMatrixValues(oMatrix, "V_6", pVal.Row, strRef)
-                                    Dim oOBj As New clsBomReference
-                                    frm_SourceBoM = oForm
-                                    frm_SourceProjectPhase = oForm
-                                    frm_ProjectPhaseRow = pVal.Row
-                                    oOBj.LoadForm(strCode, strRef, oApplication.Utilities.getMatrixValues(oMatrix, "V_1", pVal.Row))
+                                    Dim businessObject As SAPbobsCOM.Recordset = DirectCast(modVariables.oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+                                    businessObject.DoQuery(("Select * from OITM where ""ItemCode""='" & strCode & "'"))
+                                    Me.oCombobox = DirectCast(Me.oMatrix.Columns.Item("V_10").Cells.Item(pVal.Row).Specific, SAPbouiCOM.ComboBox)
+                                    If ((Me.oCombobox.Selected.Value = "4") And (businessObject.Fields.Item("TreeType").Value <> "N")) Then
+                                        strRef = AddtoUDT_Initialize(strCode, strRef)
+                                        oApplication.Utilities.SetMatrixValues(oMatrix, "V_6", pVal.Row, strRef)
+                                        Dim oOBj As New clsBomReference
+                                        frm_SourceBoM = oForm
+                                        frm_SourceProjectPhase = oForm
+                                        frm_ProjectPhaseRow = pVal.Row
+                                        oOBj.LoadForm(strCode, strRef, oApplication.Utilities.getMatrixValues(oMatrix, "V_1", pVal.Row))
+                                    End If
                                 End If
                             Case SAPbouiCOM.BoEventTypes.et_KEY_DOWN
                                 oForm = oApplication.SBO_Application.Forms.Item(FormUID)
@@ -338,19 +483,25 @@ Public Class clsProjectPhase
                             Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
                                 oForm = oApplication.SBO_Application.Forms.Item(FormUID)
                                 Select Case pVal.ItemUID
-                                    'Case "28"
-                                    '    oForm.PaneLevel = 2
+                                    Case "24"
+                                        If (MyBase.oForm.Mode = SAPbouiCOM.BoFormMode.fm_ADD_MODE) Then
+                                            Me.populateBoMDetails(MyBase.oForm)
+                                        End If
+                                        Return
+                                        'Case "28"
+                                        '    oForm.PaneLevel = 2
 
-                                    'Case "27"
-                                    '    oForm.PaneLevel = 1
+                                        'Case "27"
+                                        '    oForm.PaneLevel = 1
 
-                                    'Case "1"
-                                    '    'If pVal.ItemUID = "1" And oForm.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE Then
-                                    '    '    UpdateAttachment(oForm)
-                                    '    'End If
-                                    Case "18"
-                                        AddRow(oForm)
+                                        'Case "1"
+                                        '    'If pVal.ItemUID = "1" And oForm.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE Then
+                                        '    '    UpdateAttachment(oForm)
+                                        '    'End If
+
                                     Case "19"
+                                        AddRow(oForm)
+                                    Case "29"
                                         RefereshDeleteRow(oForm)
                                         If oForm.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE Then
                                             oForm.Mode = SAPbouiCOM.BoFormMode.fm_UPDATE_MODE
@@ -415,12 +566,20 @@ Public Class clsProjectPhase
 
                             Case SAPbouiCOM.BoEventTypes.et_CHOOSE_FROM_LIST
                                 oForm = oApplication.SBO_Application.Forms.Item(FormUID)
+                                Dim event3 As SAPbouiCOM.IChooseFromListEvent = DirectCast(pVal, SAPbouiCOM.IChooseFromListEvent)
+                                Dim chooseFromListUID As String = event3.ChooseFromListUID
+                                ' Dim selectedObjects As DataTable = event3.SelectedObjects
                                 Dim oCFLEvento As SAPbouiCOM.IChooseFromListEvent
                                 Dim oDataTable As SAPbouiCOM.DataTable
+
+                                Dim list2 As SAPbouiCOM.ChooseFromList = MyBase.oForm.ChooseFromLists.Item(chooseFromListUID)
                                 Dim val1, val, Val2 As String
                                 Try
+                                    ' selectedObjects = pVal
                                     oCFLEvento = pVal
                                     oDataTable = oCFLEvento.SelectedObjects
+                                    '  oDataTable = selectedObjects
+                                    '    selectedObjects = oCFLEvento.SelectedObjects
                                     If Not oForm.Mode = SAPbouiCOM.BoFormMode.fm_FIND_MODE Then
                                         If pVal.ItemUID = "30" Then
                                             val = oDataTable.GetValue("CardCode", 0)
@@ -444,9 +603,24 @@ Public Class clsProjectPhase
                                                 oForm.Mode = SAPbouiCOM.BoFormMode.fm_UPDATE_MODE
                                             End If
                                         End If
+
+
+
                                         If pVal.ItemUID = "14" And pVal.ColUID = "V_0" Then
-                                            val1 = oDataTable.GetValue("ItemCode", 0)
-                                            val = oDataTable.GetValue("ItemName", 0)
+                                            'val1 = oDataTable.GetValue("ItemCode", 0)
+                                            'val = oDataTable.GetValue("ItemName", 0)
+                                            'Val2 = oDataTable.GetValue("TreeType", 0)
+                                            Dim UnitPrice As Double
+                                            If (list2.ObjectType = "4") Then
+                                                val1 = (oDataTable.GetValue("ItemCode", 0))
+                                                val = (oDataTable.GetValue("ItemName", 0))
+                                                Val2 = (oDataTable.GetValue("TreeType", 0))
+                                                unitPrice = Me.GetUnitPrice(Val2)
+                                            Else
+                                                val1 = (oDataTable.GetValue("VisResCode", 0))
+                                                val = (oDataTable.GetValue("ResName", 0))
+                                                unitPrice = 0
+                                            End If
                                             oMatrix = oForm.Items.Item(pVal.ItemUID).Specific
                                             Dim dblPercentage1 As Double
                                             Try
@@ -477,7 +651,43 @@ Public Class clsProjectPhase
                                             dblQuantity = (dblUnitPrice * dblQuantity)
                                             dblQuantity = dblQuantity + (dblQuantity * dblPercentage / 100)
                                             oApplication.Utilities.SetMatrixValues(oMatrix, "V_5", pVal.Row, dblQuantity)
+                                        End If
+                                        If (pVal.ItemUID = "22") Then
+                                            Dim str12, str11, str13 As String
+                                            str12 = (oDataTable.GetValue("ItemCode", 0))
+                                            str11 = (oDataTable.GetValue("ItemName", 0))
+                                            str13 = (oDataTable.GetValue("TreeType", 0))
+                                            Try
+                                                modVariables.oApplication.Utilities.setEdittextvalue(MyBase.oForm, "23", str11)
+                                                modVariables.oApplication.Utilities.setEdittextvalue(MyBase.oForm, "22", str12)
+                                            Catch exception11 As Exception
+                                            End Try
+                                        End If
 
+                                        If pVal.ItemUID = "27" Then
+                                            val = oDataTable.GetValue("PrjCode", 0)
+                                            val1 = oDataTable.GetValue("PrjName", 0)
+                                            Try
+                                                ' oApplication.Utilities.setEdittextvalue(oForm, "9", val1)
+                                                oApplication.Utilities.setEdittextvalue(oForm, pVal.ItemUID, val)
+                                            Catch ex As Exception
+                                                If oForm.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE Then
+                                                    oForm.Mode = SAPbouiCOM.BoFormMode.fm_UPDATE_MODE
+                                                End If
+                                            End Try
+                                        End If
+
+                                        If pVal.ItemUID = "130" Then
+                                            val = oDataTable.GetValue("CardCode", 0)
+                                            val1 = oDataTable.GetValue("CardName", 0)
+                                            Try
+                                                oApplication.Utilities.setEdittextvalue(oForm, "30", val1)
+                                                oApplication.Utilities.setEdittextvalue(oForm, pVal.ItemUID, val)
+                                            Catch ex As Exception
+                                                If oForm.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE Then
+                                                    oForm.Mode = SAPbouiCOM.BoFormMode.fm_UPDATE_MODE
+                                                End If
+                                            End Try
                                         End If
                                     End If
                                 Catch ex As Exception
@@ -564,7 +774,6 @@ Public Class clsProjectPhase
                     otest = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
 
                     If stXML <> "" Then
-
                         otest.DoQuery("select * from ""@Z_OPRPH""  where ""DocEntry""=" & stXML)
                         If otest.RecordCount > 0 Then
                             If 1 = 1 Then 'otest.Fields.Item("U_Z_DocStatus").Value = "C" Then
@@ -636,8 +845,8 @@ Public Class clsProjectPhase
         Try
             Dim strQuery As String
             oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            strQuery = "Update [" & strTable & "] set U_Z_AppRequired='" & ReqValue & "',U_Z_AppReqDate=getdate()"
-            strQuery += "  where " & sColumn & "='" & StrCode & "'"
+            strQuery = "Update """ & strTable & """ set ""U_Z_AppRequired""='" & ReqValue & "',""U_Z_AppReqDate""=getdate()"
+            strQuery += "  where """ & sColumn & """='" & StrCode & "'"
             oRecordSet.DoQuery(strQuery)
         Catch ex As Exception
             MsgBox(oApplication.Company.GetLastErrorDescription)
@@ -736,7 +945,12 @@ Public Class clsProjectPhase
             Dim strQuery As String = ""
             Dim Status As String = ""
             oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            strQuery = "Select * from ""@P_OAPPT"" T0 left join ""@P_APPT1"" T1 on T0.""DocEntry""=T1.""DocEntry"" where isnull(T0.""U_Z_Active"",'N')='Y' and T0.""U_Z_DocType""='" & DocType.ToString() & "' and T1.""U_Z_OUser""='" & oApplication.Company.UserName & "' "
+            If blnIsHana Then
+                strQuery = "Select * from ""@P_OAPPT"" T0 left join ""@P_APPT1"" T1 on T0.""DocEntry""=T1.""DocEntry"" where IFNull(T0.""U_Z_Active"",'N')='Y' and T0.""U_Z_DocType""='" & DocType.ToString() & "' and T1.""U_Z_OUser""='" & oApplication.Company.UserName & "' "
+            Else
+                strQuery = "Select * from ""@P_OAPPT"" T0 left join ""@P_APPT1"" T1 on T0.""DocEntry""=T1.""DocEntry"" where isnull(T0.""U_Z_Active"",'N')='Y' and T0.""U_Z_DocType""='" & DocType.ToString() & "' and T1.""U_Z_OUser""='" & oApplication.Company.UserName & "' "
+            End If
+
             oRecordSet.DoQuery(strQuery)
             If oRecordSet.RecordCount > 0 Then
                 Status = oRecordSet.Fields.Item("DocEntry").Value
@@ -821,7 +1035,7 @@ Public Class clsProjectPhase
             For i As Integer = 1 To oMatrix.RowCount
                 Dim oRec As SAPbobsCOM.Recordset
                 oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-                Dim strQry = "Select ""ttachPath"" From OADP"
+                Dim strQry = "Select ""AttachPath"" From OADP"
                 oRec.DoQuery(strQry)
                 Dim SPath As String = oApplication.Utilities.getMatrixValues(oMatrix, "V_0", i) ' oOfferGrid.DataTable.GetValue("U_Z_Attachment", i).ToString()
                 If SPath = "" Then
@@ -1081,8 +1295,8 @@ Public Class clsProjectPhase
                 oMatrix = aForm.Items.Item("14").Specific
                 oDBDataSourceLineZ_1 = oForm.DataSources.DBDataSources.Item("@Z_PRPH1")
             Else
-                oMatrix = aForm.Items.Item("100").Specific
-                oDBDataSourceLineZ_1 = oForm.DataSources.DBDataSources.Item("@Z_QUT2")
+                oMatrix = aForm.Items.Item("14").Specific
+                oDBDataSourceLineZ_1 = oForm.DataSources.DBDataSources.Item("@Z_PRPH1")
             End If
 
             If oMatrix.RowCount <= 0 Then
@@ -1102,13 +1316,14 @@ Public Class clsProjectPhase
                 oDBDataSourceLineZ_1.SetValue("LineId", count - 1, count)
             Next
             oMatrix.LoadFromDataSource()
+           
+
+            AssignLineNo(aForm)
             Try
                 oMatrix.Columns.Item("V_0").Cells.Item(oMatrix.RowCount).Click(SAPbouiCOM.BoCellClickType.ct_Regular)
             Catch ex As Exception
 
             End Try
-
-            AssignLineNo(aForm)
             aForm.Freeze(False)
         Catch ex As Exception
             aForm.Freeze(False)

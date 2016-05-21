@@ -52,7 +52,7 @@
         oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
         oGrid = aForm.Items.Item("4").Specific
         Try
-            strQuery = "Select DocEntry,DocNum,CreateDate,U_Z_CardCode,U_Z_SlpCode,U_Z_Desc,U_Z_DocStatus,U_Z_AppStatus,U_Z_Remarks,U_Z_CurApprover,U_Z_NxtApprover,Creator from [@Z_OQUT] where U_Z_AppStatus='P' and U_Z_DocStatus='C' and ( U_Z_CurApprover='" & oApplication.Company.UserName & "' OR U_Z_NxtApprover='" & oApplication.Company.UserName & "')"
+            strQuery = "Select ""DocEntry"",""DocNum"",""CreateDate"",""U_Z_CardCode"",""U_Z_SlpCode"",""U_Z_Desc"",""U_Z_DocStatus"",""U_Z_AppStatus"",""U_Z_Remarks"",""U_Z_CurApprover"",""U_Z_NxtApprover"",""Creator"",""U_Z_AppID"" ""APPID"" from ""@Z_OQUT"" where ""U_Z_AppStatus""='P' and ""U_Z_DocStatus""='R' and ( ""U_Z_CurApprover""='" & oApplication.Company.UserName & "' OR ""U_Z_NxtApprover""='" & oApplication.Company.UserName & "')"
             oGrid.DataTable.ExecuteQuery(strQuery)
             FormatHeadGrid(aForm, "Header", "4")
             assignMatrixLineno(oGrid, aForm)
@@ -64,7 +64,7 @@
         oRec = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
         oGrid = aForm.Items.Item("9").Specific
         Try
-            strQuery = "Select DocEntry,DocNum,CreateDate,U_Z_CardCode,U_Z_SlpCode,U_Z_Desc,U_Z_DocStatus,U_Z_AppStatus,U_Z_Remarks,U_Z_CurApprover,U_Z_NxtApprover,Creator from [@Z_OQUT] where U_Z_DocStatus='C' and ( U_Z_CurApprover='" & oApplication.Company.UserName & "' OR U_Z_NxtApprover='" & oApplication.Company.UserName & "')"
+            strQuery = "Select ""DocEntry"",""DocNum"",""CreateDate"",""U_Z_CardCode"",""U_Z_SlpCode"",""U_Z_Desc"",""U_Z_DocStatus"",""U_Z_AppStatus"",""U_Z_Remarks"",""U_Z_CurApprover"",""U_Z_NxtApprover"",""Creator"",""U_Z_AppID"" ""APPID"" from ""@Z_OQUT"" where ""U_Z_DocStatus""='R' and ( ""U_Z_CurApprover""='" & oApplication.Company.UserName & "' OR ""U_Z_NxtApprover""='" & oApplication.Company.UserName & "')"
             oGrid.DataTable.ExecuteQuery(strQuery)
             FormatHeadGrid(aForm, "Header", "9")
             assignMatrixLineno(oGrid, aForm)
@@ -94,7 +94,7 @@
                 oGrid.Columns.Item("U_Z_SlpCode").Type = SAPbouiCOM.BoGridColumnType.gct_ComboBox
                 oComboColumn = oGrid.Columns.Item("U_Z_SlpCode")
                 oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-                oRecordSet.DoQuery("select SlpCode,SlpName  from OSLP order by SlpCode")
+                oRecordset.DoQuery("select ""SlpCode"",""SlpName""  from OSLP order by ""SlpCode""")
                 For introw As Integer = 0 To oRecordSet.RecordCount - 1
                     oComboColumn.ValidValues.Add(oRecordSet.Fields.Item(0).Value, oRecordSet.Fields.Item(1).Value)
                     oRecordSet.MoveNext()
@@ -129,6 +129,8 @@
                 oGrid.Columns.Item("U_Z_NxtApprover").TitleObject.Caption = "Next Approver"
                 oGrid.Columns.Item("U_Z_NxtApprover").Editable = False
                 oGrid.Columns.Item("Creator").Visible = False
+                oGrid.Columns.Item("APPID").TitleObject.Caption = "Template ID"
+                oGrid.Columns.Item("APPID").Editable = False
                 oGrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_Single
                 oGrid.AutoResizeColumns()
             End If
@@ -139,7 +141,7 @@
     Private Sub ViewWorkSheet(ByVal sForm As SAPbouiCOM.Form, ByVal RefCode As String, ByVal gridId As String)
         oGrid = sForm.Items.Item(gridId).Specific
         Try
-            strSQL = "SELECT U_Z_ItemCode,U_Z_ItemDesc,U_Z_Size,U_Z_Qty,U_Z_Price,U_Z_Total,U_Z_Spec FROM [@Z_QUT1]  T0 where T0.DocEntry='" & RefCode & "'"
+            strSQL = "SELECT ""U_Z_ItemCode"",""U_Z_ItemDesc"",""U_Z_Qty"",""U_Z_Price"",""U_Z_Margin"",""U_Z_Total"" FROM ""@Z_QUT1""  T0 where T0.""DocEntry""='" & RefCode & "'"
             oGrid.DataTable.ExecuteQuery(strSQL)
             Formatgrid(oGrid)
             assignMatrixLineno(oGrid, sForm)
@@ -149,12 +151,11 @@
     End Sub
 #Region "FormatGrid"
     Private Sub Formatgrid(ByVal agrid As SAPbouiCOM.Grid)
-        agrid.Columns.Item("U_Z_ItemCode").TitleObject.Caption = "Item Code"
-        oEditTextColumn = agrid.Columns.Item("U_Z_ItemCode")
-        oEditTextColumn.LinkedObjectType = "4"
-        agrid.Columns.Item("U_Z_ItemDesc").TitleObject.Caption = "Item Description"
-        agrid.Columns.Item("U_Z_Spec").TitleObject.Caption = "Item Specification"
-        agrid.Columns.Item("U_Z_Size").TitleObject.Caption = "Size"
+        agrid.Columns.Item("U_Z_ItemCode").TitleObject.Caption = "Activity"
+        ' oEditTextColumn = agrid.Columns.Item("U_Z_ItemCode")
+        ' oEditTextColumn.LinkedObjectType = "4"
+        agrid.Columns.Item("U_Z_ItemDesc").TitleObject.Caption = " Description"
+        agrid.Columns.Item("U_Z_Margin").TitleObject.Caption = "Margin %"
         agrid.Columns.Item("U_Z_Qty").TitleObject.Caption = "Quantity"
         agrid.Columns.Item("U_Z_Price").TitleObject.Caption = "Unit Price"
         agrid.Columns.Item("U_Z_Total").TitleObject.Caption = "Total"
@@ -202,20 +203,22 @@
             Dim strDocType1, HeaderCode As String
             Dim strEmpID As String = ""
             Dim strLeaveType As String = ""
+            Dim strTempID As String
             If oGrid.DataTable.Rows.Count > 0 Then
                 For index As Integer = 0 To oGrid.DataTable.Rows.Count - 1
                     strDocEntry = oGrid.DataTable.GetValue("DocEntry", index)
                     strEmpID = oGrid.DataTable.GetValue("Creator", index)
-                    strQuery = "select T0.DocEntry,T1.LineId from [@P_OAPPT] T0 JOIN [@P_APPT2] T1 on T0.DocEntry=T1.DocEntry"
-                    strQuery += " JOIN [@P_APPT1] T2 on T1.DocEntry=T2.DocEntry"
-                    strQuery += " where T0.U_Z_DocType='B' AND (T2.U_Z_OUser='" & strEmpID & "' OR T1.U_Z_AUser='" & oApplication.Company.UserName & "')"
+                    strTempID = oGrid.DataTable.GetValue("APPID", index)
+                    strQuery = "Select T0.""DocEntry"",T1.""LineId"" from ""@P_OAPPT"" T0 JOIN ""@P_APPT2"" T1 on T0.""DocEntry""=T1.""DocEntry"""
+                    strQuery += " JOIN ""@P_APPT1"" T2 on T1.""DocEntry""=T2.""DocEntry"""
+                    strQuery += " where T0.""DocEntry""=" & strTempID & " and  T0.""U_Z_DocType""='B' AND (T2.""U_Z_OUser""='" & strEmpID & "' OR T1.""U_Z_AUser""='" & oApplication.Company.UserName & "')"
                     otestRs.DoQuery(strQuery)
                     If otestRs.RecordCount > 0 Then
                         HeadDocEntry = otestRs.Fields.Item(0).Value
                         UserLineId = otestRs.Fields.Item(1).Value
                     End If
 
-                    strQuery = "Select * from [@P_APHIS] where U_Z_DocEntry='" & strDocEntry & "' and U_Z_DocType='B' and U_Z_ApproveBy='" & oApplication.Company.UserName & "'"
+                    strQuery = "Select * from ""@P_APHIS"" where ""U_Z_DocEntry""='" & strDocEntry & "' and ""U_Z_DocType""='B' and ""U_Z_ApproveBy""='" & oApplication.Company.UserName & "'"
                     oRecordSet.DoQuery(strQuery)
                     If oRecordSet.RecordCount > 0 Then
                         oGeneralParams.SetProperty("DocEntry", oRecordSet.Fields.Item("DocEntry").Value)
@@ -226,7 +229,14 @@
                         oGeneralData.SetProperty("U_Z_ALineId", UserLineId)
                         Dim oTemp As SAPbobsCOM.Recordset
                         oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-                        oTemp.DoQuery("Select * ,isnull(""firstName"",'') +  ' ' + isnull(""middleName"",'') +  ' ' + isnull(""lastName"",'') 'EmpName' from OHEM where ""userid""=" & oApplication.Company.UserSignature)
+
+                        If blnIsHana Then
+                            oTemp.DoQuery("Select * ,IfNull(""firstName"",'') ||  ' ' || IfNull(""middleName"",'') ||  ' ' || IfNull(""lastName"",'') As ""EmpName"" from OHEM where ""userId""=" & oApplication.Company.UserSignature)
+                        Else
+                            oTemp.DoQuery("Select * ,isnull(""firstName"",'') +  ' ' + isnull(""middleName"",'') +  ' ' + isnull(""lastName"",'') 'EmpName' from OHEM where ""userId""=" & oApplication.Company.UserSignature)
+                        End If
+
+
                         If oTemp.RecordCount > 0 Then
                             oGeneralData.SetProperty("U_Z_EmpId", oTemp.Fields.Item("empID").Value.ToString())
                             oGeneralData.SetProperty("U_Z_EmpName", oTemp.Fields.Item("EmpName").Value)
@@ -239,7 +249,12 @@
                     ElseIf (strDocEntry <> "" And strDocEntry <> "0") Then
                         Dim oTemp As SAPbobsCOM.Recordset
                         oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-                        oTemp.DoQuery("Select * ,isnull(""firstName"",'') + ' ' + isnull(""middleName"",'') +  ' ' + isnull(""lastName"",'') 'EmpName' from OHEM where ""userid""=" & oApplication.Company.UserSignature)
+                        If blnIsHana Then
+                            oTemp.DoQuery("Select * ,IfNull(""firstName"",'') || ' ' || IfNull(""middleName"",'') || ' ' || IfNull(""lastName"",'') As ""EmpName"" from OHEM where ""userId""=" & oApplication.Company.UserSignature)
+                        Else
+                            oTemp.DoQuery("Select * ,isnull(""firstName"",'') + ' ' + isnull(""middleName"",'') +  ' ' + isnull(""lastName"",'') 'EmpName' from OHEM where ""userId""=" & oApplication.Company.UserSignature)
+                        End If
+
                         If oTemp.RecordCount > 0 Then
                             oGeneralData.SetProperty("U_Z_EmpId", oTemp.Fields.Item("empID").Value.ToString())
                             oGeneralData.SetProperty("U_Z_EmpName", oTemp.Fields.Item("EmpName").Value)
@@ -280,29 +295,29 @@
             oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
             oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
             If strStatus = "A" Then
-                sQuery = " Select T2.DocEntry "
-                sQuery += " From [@P_APPT2] T2 "
-                sQuery += " JOIN [@P_OAPPT] T3 ON T2.DocEntry = T3.DocEntry  "
-                sQuery += " JOIN [@P_APPT1] T4 ON T4.DocEntry = T3.DocEntry  "
-                sQuery += " Where  U_Z_AFinal = 'Y'"
-                sQuery += " And T2.U_Z_AUser = '" + oApplication.Company.UserName + "' And T3.U_Z_DocType = 'B'"
+                sQuery = " Select T2.""DocEntry"" "
+                sQuery += " From ""@P_APPT2"" T2 "
+                sQuery += " JOIN ""@P_OAPPT"" T3 ON T2.""DocEntry"" = T3.""DocEntry""  "
+                sQuery += " JOIN ""@P_APPT1"" T4 ON T4.""DocEntry"" = T3.""DocEntry""  "
+                sQuery += " Where  ""U_Z_AFinal"" = 'Y'"
+                sQuery += " And T2.""DocEntry""=" & strTemplateNo & " and  T2.""U_Z_AUser"" = '" + oApplication.Company.UserName + "' And T3.""U_Z_DocType"" = 'B'"
                 oRecordSet.DoQuery(sQuery)
                 If Not oRecordSet.EoF Then
-                    strQuery = "Update [@Z_OQUT] set U_Z_AppStatus='A' where DocEntry='" & strDocEntry & "'"
+                    strQuery = "Update ""@Z_OQUT"" set ""U_Z_DocStatus""='A', ""U_Z_AppStatus""='A' where ""DocEntry""='" & strDocEntry & "'"
                     oRecordSet.DoQuery(strQuery)
 
                     StrMailMessage = "BoM Estimation has been Approved for the Document number :" & CInt(strDocEntry)
                     UserMessage(StrMailMessage, strDocEntry, aEmpID)
                 End If
             ElseIf strStatus = "R" Then
-                sQuery = " Select T2.DocEntry "
-                sQuery += " From [@P_APPT2] T2 "
-                sQuery += " JOIN [@P_OAPPT] T3 ON T2.DocEntry = T3.DocEntry  "
-                sQuery += " JOIN [@P_APPT1] T4 ON T4.DocEntry = T3.DocEntry  "
-                sQuery += " Where T2.U_Z_AUser = '" + oApplication.Company.UserName + "' And T3.U_Z_DocType = 'B'"
+                sQuery = " Select T2.""DocEntry"" "
+                sQuery += " From ""@P_APPT2"" T2 "
+                sQuery += " JOIN ""@P_OAPPT"" T3 ON T2.""DocEntry"" = T3.""DocEntry""  "
+                sQuery += " JOIN ""@P_APPT1"" T4 ON T4.""DocEntry"" = T3.""DocEntry""  "
+                sQuery += " Where T2.""DocEntry""=" & strTemplateNo & " and  T2.""U_Z_AUser"" = '" + oApplication.Company.UserName + "' And T3.""U_Z_DocType"" = 'B'"
                 oRecordSet.DoQuery(sQuery)
                 If Not oRecordSet.EoF Then
-                    strQuery = "Update [@Z_OQUT] set U_Z_AppStatus='R',U_Z_Remarks='" & Remarks & "' where DocEntry='" & strDocEntry & "'"
+                    strQuery = "Update ""@Z_OQUT"" set ""U_Z_DocStatus""='Re', ""U_Z_AppStatus""='R',""U_Z_Remarks""='" & Remarks & "' where ""DocEntry""='" & strDocEntry & "'"
                     oRecordSet.DoQuery(strQuery)
                     StrMailMessage = "BoM Estimation has been Rejected for the Document number :" & CInt(strDocEntry)
                     UserMessage(StrMailMessage, strDocEntry, aEmpID)
@@ -359,11 +374,16 @@
             oMessage = oMessageService.GetDataInterface(SAPbobsCOM.MessagesServiceDataInterfaces.msdiMessage)
             oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
             oTemp = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            strQuery = "Select LineId From [@P_APPT2] Where DocEntry = '" & strTemplateNo & "' And U_Z_AUser = '" & strAuthorizer & "'"
+            strQuery = "Select ""LineId"" From ""@P_APPT2"" Where ""DocEntry"" = '" & strTemplateNo & "' And ""U_Z_AUser"" = '" & strAuthorizer & "'"
             oRecordSet.DoQuery(strQuery)
             If Not oRecordSet.EoF Then
                 intLineID = CInt(oRecordSet.Fields.Item(0).Value)
-                strQuery = "Select Top 1 U_Z_AUser From [@P_APPT2] Where  DocEntry = '" & strTemplateNo & "' And LineId > '" & intLineID.ToString() & "' and isnull(U_Z_AMan,'')='Y'  Order By LineId Asc "
+                If blnIsHana = True Then
+                    strQuery = "Select Top 1 ""U_Z_AUser"" From ""@P_APPT2"" Where  ""DocEntry"" = '" & strTemplateNo & "' And ""LineId"" > '" & intLineID.ToString() & "' and IfNull(""U_Z_AMan"",'')='Y'  Order By ""LineId"" Asc "
+                Else
+                    strQuery = "Select Top 1 U_Z_AUser From [@P_APPT2] Where  DocEntry = '" & strTemplateNo & "' And LineId > '" & intLineID.ToString() & "' and isnull(U_Z_AMan,'')='Y'  Order By LineId Asc "
+                End If
+
                 oRecordSet.DoQuery(strQuery)
 
                 If Not oRecordSet.EoF Then
@@ -372,7 +392,7 @@
                     Dim strMessage As String = ""
                     strMessage = " Requested by  :" & oApplication.Company.UserName & ": Document Number : " & strReqNo
 
-                    strQuery = "Update [@Z_OQUT] set U_Z_CurApprover='" & oApplication.Company.UserName & "',U_Z_NxtApprover='" & strMessageUser & "' where DocEntry='" & strReqNo & "'"
+                    strQuery = "Update ""@Z_OQUT"" set ""U_Z_CurApprover""='" & oApplication.Company.UserName & "',""U_Z_NxtApprover""='" & strMessageUser & "' where ""DocEntry""='" & strReqNo & "'"
                     oTemp.DoQuery(strQuery)
 
                     oMessage.Text = "BoM Estimation " & " " & strMessage & " Needs Your Approval "

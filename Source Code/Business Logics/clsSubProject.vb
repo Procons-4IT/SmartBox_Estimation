@@ -34,6 +34,7 @@
             oForm.Freeze(True)
             oForm.DataBrowser.BrowseBy = "4"
             enableControls(oForm, True)
+            addChooseFromListConditions(oForm)
             oForm.Mode = SAPbouiCOM.BoFormMode.fm_FIND_MODE
             oForm.Items.Item("4").Click(SAPbouiCOM.BoCellClickType.ct_Regular)
             oForm.Freeze(False)
@@ -41,7 +42,28 @@
             oApplication.Utilities.Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
         End Try
     End Sub
-    
+    Private Sub addChooseFromListConditions(ByVal oForm As SAPbouiCOM.Form)
+        Try
+            Dim oCFLs As SAPbouiCOM.ChooseFromListCollection
+            Dim oCons As SAPbouiCOM.Conditions
+            Dim oCon As SAPbouiCOM.Condition
+            Dim oCFL As SAPbouiCOM.ChooseFromList
+
+            oCFLs = oForm.ChooseFromLists
+
+            oCFL = oCFLs.Item("CFL_4")
+            oCons = oCFL.GetConditions()
+            oCon = oCons.Add()
+            oCon.Alias = "CardType"
+            oCon.Operation = SAPbouiCOM.BoConditionOperation.co_EQUAL
+            oCon.CondVal = "C"
+            oCFL.SetConditions(oCons)
+
+
+        Catch ex As Exception
+            Throw ex
+        End Try
+    End Sub
 
 
 #Region "Item Event"
@@ -117,6 +139,32 @@
                                             val1 = oDataTable.GetValue("AcctName", 0)
                                             Try
                                                 oApplication.Utilities.setEdittextvalue(oForm, "9", val1)
+                                                oApplication.Utilities.setEdittextvalue(oForm, pVal.ItemUID, val)
+                                            Catch ex As Exception
+                                                If oForm.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE Then
+                                                    oForm.Mode = SAPbouiCOM.BoFormMode.fm_UPDATE_MODE
+                                                End If
+                                            End Try
+                                        End If
+
+                                        If pVal.ItemUID = "15" Then
+                                            val = oDataTable.GetValue("PrjCode", 0)
+                                            val1 = oDataTable.GetValue("PrjName", 0)
+                                            Try
+                                                ' oApplication.Utilities.setEdittextvalue(oForm, "9", val1)
+                                                oApplication.Utilities.setEdittextvalue(oForm, pVal.ItemUID, val)
+                                            Catch ex As Exception
+                                                If oForm.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE Then
+                                                    oForm.Mode = SAPbouiCOM.BoFormMode.fm_UPDATE_MODE
+                                                End If
+                                            End Try
+                                        End If
+
+                                        If pVal.ItemUID = "17" Then
+                                            val = oDataTable.GetValue("CardCode", 0)
+                                            val1 = oDataTable.GetValue("CardName", 0)
+                                            Try
+                                                oApplication.Utilities.setEdittextvalue(oForm, "18", val1)
                                                 oApplication.Utilities.setEdittextvalue(oForm, pVal.ItemUID, val)
                                             Catch ex As Exception
                                                 If oForm.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE Then

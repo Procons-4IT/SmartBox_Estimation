@@ -138,6 +138,12 @@ Public Class clsListener
         Try
             If pVal.BeforeAction = False Then
                 Select Case pVal.MenuUID
+                    Case mnu_PBWizard
+                        oMenuObject = New clsProjectbudgetCreation
+                        oMenuObject.MenuEvent(pVal, BubbleEvent)
+                    Case mnu_POWizard
+                        oMenuObject = New clsProductionWizard
+                        oMenuObject.MenuEvent(pVal, BubbleEvent)
                     Case mnu_BoM_Template
                         oMenuObject = New clsBoMApprovalTemplate
                         oMenuObject.MenuEvent(pVal, BubbleEvent)
@@ -161,7 +167,7 @@ Public Class clsListener
                     Case mnu_BoM_Approval
                         oMenuObject = New clsBoMApproval
                         oMenuObject.MenuEvent(pVal, BubbleEvent)
-                   
+
                     Case mnu_ADD, mnu_FIND, mnu_FIRST, mnu_LAST, mnu_NEXT, mnu_PREVIOUS, mnu_ADD_ROW, mnu_DELETE_ROW, "1287"
                         If _Collection.ContainsKey(_FormUID) Then
                             oMenuObject = _Collection.Item(_FormUID)
@@ -199,7 +205,24 @@ Public Class clsListener
 
             If pVal.BeforeAction = False And pVal.EventType = SAPbouiCOM.BoEventTypes.et_FORM_LOAD Then
                 Select Case pVal.FormTypeEx
-
+                    Case frm_PBWizar
+                        If Not _Collection.ContainsKey(FormUID) Then
+                            oItemObject = New clsProjectbudgetCreation
+                            oItemObject.FrmUID = FormUID
+                            _Collection.Add(FormUID, oItemObject)
+                        End If
+                    Case frm_PO_Wizard
+                        If Not _Collection.ContainsKey(FormUID) Then
+                            oItemObject = New clsProductionWizard
+                            oItemObject.FrmUID = FormUID
+                            _Collection.Add(FormUID, oItemObject)
+                        End If
+                    Case frm_BOMRef1
+                        If Not _Collection.ContainsKey(FormUID) Then
+                            oItemObject = New clsBoMSecondLevelref
+                            oItemObject.FrmUID = FormUID
+                            _Collection.Add(FormUID, oItemObject)
+                        End If
                     Case frm_BOMRef
                         If Not _Collection.ContainsKey(FormUID) Then
                             oItemObject = New clsBomReference
@@ -237,7 +260,12 @@ Public Class clsListener
                             oItemObject.FrmUID = FormUID
                             _Collection.Add(FormUID, oItemObject)
                         End If
-                       
+                        'Case frm_BoM_Wizard_PO
+                        '    If Not _Collection.ContainsKey(FormUID) Then
+                        '        oItemObject = New clsBoMWizard_PO
+                        '        oItemObject.FrmUID = FormUID
+                        '        _Collection.Add(FormUID, oItemObject)
+                        '    End If
                     Case frm_BoM_Template
                         If Not _Collection.ContainsKey(FormUID) Then
                             oItemObject = New clsBoMApprovalTemplate
@@ -257,6 +285,18 @@ Public Class clsListener
                             oItemObject.FrmUID = FormUID
                             _Collection.Add(FormUID, oItemObject)
                         End If
+                        'Case frm_BoM
+                        '    If Not _Collection.ContainsKey(FormUID) Then
+                        '        oItemObject = New clsBoM
+                        '        oItemObject.FrmUID = FormUID
+                        '        _Collection.Add(FormUID, oItemObject)
+                        '    End If
+                        'Case frm_GoodsIssue, frm_PurchaseRequest
+                        '    If Not _Collection.ContainsKey(FormUID) Then
+                        '        oItemObject = New clsDocuments
+                        '        oItemObject.FrmUID = FormUID
+                        '        _Collection.Add(FormUID, oItemObject)
+                        '    End If
                 End Select
             End If
 

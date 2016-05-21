@@ -1,4 +1,4 @@
-﻿Public Class clsBoMWizard
+﻿Public Class clsBoMWizard_PO
     Inherits clsBase
 
     Private oMatrix As SAPbouiCOM.Matrix
@@ -27,8 +27,10 @@
 
     Public Sub LoadForm(aCode As String, Optional aSlpCode As String = "-1")
         Try
-            oForm = oApplication.Utilities.LoadForm(xml_BoM_Wizard, frm_BoM_Wizard)
+            oForm = oApplication.Utilities.LoadForm(xml_BoM_Wizard_PO, frm_BoM_Wizard_PO)
             oForm = oApplication.SBO_Application.Forms.ActiveForm()
+            aCode = ""
+            aSlpCode = ""
             oApplication.Utilities.setEdittextvalue(oForm, "12", aCode)
             oApplication.Utilities.setEdittextvalue(oForm, "13", aSlpCode)
             oForm.PaneLevel = 1
@@ -44,14 +46,29 @@
             oApplication.Utilities.Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
         End Try
     End Sub
+
     Private Function GetSelectedDocuments(aform As SAPbouiCOM.Form) As String
         Dim strDocNum As String = "10000"
         oGrid = aform.Items.Item("7").Specific
         For intRow As Integer = 0 To oGrid.DataTable.Rows.Count - 1
             oCheck = oGrid.Columns.Item("Select")
             If oCheck.IsChecked(intRow) Then
-                strDocNum = strDocNum & "," & oGrid.DataTable.GetValue("DocEntry", intRow)
+                strDocNum = strDocNum & "," & oGrid.DataTable.GetValue("Code", intRow)
             End If
+
+        Next
+        Return strDocNum
+    End Function
+
+    Private Function getParentItems(aform As SAPbouiCOM.Form) As String
+        Dim strDocNum As String = "'xxxxxx'"
+        oGrid = aform.Items.Item("7").Specific
+        For intRow As Integer = 0 To oGrid.DataTable.Rows.Count - 1
+            oCheck = oGrid.Columns.Item("Select")
+            If oCheck.IsChecked(intRow) Then
+                strDocNum = strDocNum & ",'" & oGrid.DataTable.GetValue("Code", intRow) & "'"
+            End If
+
         Next
         Return strDocNum
     End Function
@@ -61,78 +78,58 @@
         aform.Freeze(True)
         If aChoice = "Header" Then
             oGrid = aform.Items.Item("7").Specific
-            oGrid.DataTable.ExecuteQuery("SELECT T0.""DocEntry"", T0.""DocNum"", T0.""CreateDate"",T0.""U_Z_PrjCode"",T0.""U_Z_PrjName"",""U_Z_SupPrjCode"",""U_Z_SupPrjName"",""U_Z_GLAcc"",""U_Z_FreeText"",T0.""U_Z_CardCode"",T0.""U_Z_SlpCode"",T0.""U_Z_TotalCost"" ""Total Cost"", T0.""U_Z_Remarks"", ' ' As ""Select"" FROM ""@Z_OQUT""  T0 where T0.""U_Z_DocStatus""='A' and T0.""U_Z_AppStatus""='A' and T0.""U_Z_SlpCode""='" & oApplication.Utilities.getEditTextvalue(aform, "13") & "' and  T0.""U_Z_CardCode""='" & oApplication.Utilities.getEditTextvalue(aform, "12") & "' order by ""DocEntry"" Desc")
-            oGrid.Columns.Item("DocEntry").TitleObject.Caption = "Estimation No"
-            oGrid.Columns.Item("DocEntry").Visible = False
-            oGrid.Columns.Item("DocNum").TitleObject.Caption = "Estimation Number"
-            oGrid.Columns.Item("DocNum").Editable = False
-            oEditTextColumn = oGrid.Columns.Item("DocNum")
-            oEditTextColumn.LinkedObjectType = "2"
-            oGrid.Columns.Item("CreateDate").TitleObject.Caption = "Create Date"
-            oGrid.Columns.Item("CreateDate").Editable = False
-            oGrid.Columns.Item("U_Z_CardCode").TitleObject.Caption = "Customer Code"
-            oGrid.Columns.Item("U_Z_CardCode").Editable = False
-            oEditTextColumn = oGrid.Columns.Item("U_Z_CardCode")
-            oEditTextColumn.LinkedObjectType = "2"
-            oGrid.Columns.Item("U_Z_SlpCode").TitleObject.Caption = "Sales Person"
-            oGrid.Columns.Item("U_Z_SlpCode").Type = SAPbouiCOM.BoGridColumnType.gct_ComboBox
-            oComboColumn = oGrid.Columns.Item("U_Z_SlpCode")
-            oRecordSet = oApplication.Company.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset)
-            oRecordSet.DoQuery("select ""SlpCode"",""SlpName"" from OSLP order by ""SlpCode""")
-            For introw As Integer = 0 To oRecordSet.RecordCount - 1
-                oComboColumn.ValidValues.Add(oRecordSet.Fields.Item(0).Value, oRecordSet.Fields.Item(1).Value)
-                oRecordSet.MoveNext()
-            Next
-            oComboColumn.DisplayType = SAPbouiCOM.BoComboDisplayType.cdt_Description
+            '  oGrid.DataTable.ExecuteQuery("SELECT T0.[DocEntry], T0.[DocNum], T0.[CreateDate],T0.U_Z_CardCode,T0.U_Z_SlpCode, T0.[U_Z_Desc], T0.[U_Z_Remarks], ' ' 'Select' FROM [dbo].[@Z_OQUT]  T0 where T0.U_Z_DocStatus='C' and T0.U_Z_AppStatus='A' and T0.U_Z_SlpCode='" & oApplication.Utilities.getEditTextvalue(aform, "13") & "' and  T0.U_Z_CardCode='" & oApplication.Utilities.getEditTextvalue(aform, "12") & "' order by DocEntry Desc")
+            'oGrid.DataTable.ExecuteQuery("SELECT T0.[DocEntry], T0.[DocNum], T0.[CreateDate],T0.U_Z_CardCode,T0.U_Z_SlpCode, T0.[U_Z_Desc], T0.[U_Z_Remarks], ' ' 'Select' FROM [dbo].[@Z_OQUT]  T0 where T0.U_Z_DocStatus='C' and T0.U_Z_AppStatus='A'  order by DocEntry Desc")
 
-            oGrid.Columns.Item("U_Z_SlpCode").Editable = False
-            'oGrid.Columns.Item("U_Z_Desc").TitleObject.Caption = "Description"
-            'oGrid.Columns.Item("U_Z_Desc").Editable = False
-            oGrid.Columns.Item("U_Z_Remarks").TitleObject.Caption = "Remarks"
-            oGrid.Columns.Item("U_Z_Remarks").Editable = False
-            oGrid.Columns.Item("U_Z_PrjCode").TitleObject.Caption = "Project Code"
-            oGrid.Columns.Item("U_Z_PrjCode").Visible = False
-            oGrid.Columns.Item("U_Z_PrjName").TitleObject.Caption = "Project Name"
-            oGrid.Columns.Item("U_Z_PrjName").Editable = False
-            oGrid.Columns.Item("U_Z_SupPrjCode").TitleObject.Caption = "Sub Project Code"
-            oGrid.Columns.Item("U_Z_SupPrjCode").Visible = False
-            oGrid.Columns.Item("U_Z_SupPrjName").TitleObject.Caption = "Sub Project Name"
-            oGrid.Columns.Item("U_Z_SupPrjName").Editable = False
-            oGrid.Columns.Item("U_Z_GLAcc").Visible = False
-            oGrid.Columns.Item("U_Z_FreeText").TitleObject.Caption = "Text"
-            oGrid.Columns.Item("U_Z_FreeText").Editable = False
-            oGrid.Columns.Item("Total Cost").TitleObject.Caption = "Total Cost"
-            oGrid.Columns.Item("Total Cost").Editable = False
+            oGrid.DataTable.ExecuteQuery("select  ' ' As ""Select"",T0.""Code"" from OITT T0 ")
+
             oGrid.Columns.Item("Select").Type = SAPbouiCOM.BoGridColumnType.gct_CheckBox
             oGrid.Columns.Item("Select").TitleObject.Caption = "Select"
             oGrid.Columns.Item("Select").Editable = True
+            oGrid.Columns.Item("Code").TitleObject.Caption = "BoM Parent"
+            oGrid.Columns.Item("Code").Editable = False
+            oEditTextColumn = oGrid.Columns.Item("Code")
+            oEditTextColumn.LinkedObjectType = "4"
+
             oGrid.AutoResizeColumns()
             oGrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_None
         Else
-            Dim strDocNumbers As String = GetSelectedDocuments(aform)
+            Dim strDocNumbers As String = getParentItems(aform)
             oGrid = aform.Items.Item("9").Specific
-            strItem = "SELECT T0.""DocEntry"",T1.""DocNum"", T0.""LineId"",T0.""U_Z_ItemCode"", T0.""U_Z_ItemDesc"", T0.""U_Z_Price"", T0.""U_Z_Qty"", T0.""U_Z_Total"", 'Y' As ""Select"" FROM ""@Z_QUT1""  T0"
+            strItem = "SELECT T0.""DocEntry"",T1.""DocNum"", T0.""LineId"",T0.""U_Z_ItemCode"", T0.""U_Z_ItemDesc"", T0.""U_Z_Spec"",T0.""U_Z_Size"" AS ""Size"", T0.""U_Z_Price"", T0.""U_Z_Qty"", T0.""U_Z_Total"", ' ' As ""Select"" FROM ""@Z_QUT1""  T0"
             strItem = strItem & " inner Join ""@Z_OQUT"" T1 on T1.""DocEntry""=T0.""DocEntry"" where T0.""U_Z_ItemCode""<>'' AND T0.""DocEntry"" in (" & strDocNumbers & ")"
+            strItem = "select ' ' As ""Select"",T0.""Code"",T1.""Code"" As ""ItemCode"",T2.""ItemName"",T1.""Quantity"" ,T1.""Warehouse"" As ""WhsCode"" ,T1.U_AVGCOST"",T1.""U_MARKUP"",T1.""Price"" from OITT T0 Inner Join ITT1 T1 on T1.""Father""=T0.""Code"" inner Join OITM T2 on T2.""ItemCode""=T1.""Code"" where T2.""ItmsGrpCod""<>112"
+            strItem = strItem & " and T0.""Code"" in (" & strDocNumbers & ")"
             oGrid.DataTable.ExecuteQuery(strItem)
-            oGrid.Columns.Item("DocEntry").TitleObject.Caption = "Estimation No"
-            oGrid.Columns.Item("DocEntry").Editable = False
-            oGrid.Columns.Item("DocNum").Editable = False
-            oGrid.Columns.Item("LineId").Visible = False
-            oGrid.Columns.Item("U_Z_ItemCode").TitleObject.Caption = "Item Code"
-            oGrid.Columns.Item("U_Z_ItemCode").Editable = False
-            oEditTextColumn = oGrid.Columns.Item("U_Z_ItemCode")
+            oGrid.Columns.Item("Code").TitleObject.Caption = "Parent Item"
+            oGrid.Columns.Item("Code").Editable = False
+            oEditTextColumn = oGrid.Columns.Item("Code")
             oEditTextColumn.LinkedObjectType = "4"
-            oGrid.Columns.Item("U_Z_ItemDesc").TitleObject.Caption = "Description"
-            oGrid.Columns.Item("U_Z_ItemDesc").Editable = False
-            oGrid.Columns.Item("U_Z_Price").TitleObject.Caption = "Unit Price"
-            oGrid.Columns.Item("U_Z_Price").Editable = False
-            oGrid.Columns.Item("U_Z_Qty").TitleObject.Caption = "Quantity"
-            oGrid.Columns.Item("U_Z_Qty").Editable = False
-            oGrid.Columns.Item("U_Z_Total").TitleObject.Caption = "Sales Price"
-            oGrid.Columns.Item("U_Z_Total").Editable = False
+            oGrid.Columns.Item("ItemCode").TitleObject.Caption = "Item Code"
+            oGrid.Columns.Item("ItemCode").Editable = False
+            oEditTextColumn = oGrid.Columns.Item("ItemCode")
+            oEditTextColumn.LinkedObjectType = "4"
+            oGrid.Columns.Item("ItemName").TitleObject.Caption = "Description"
+            oGrid.Columns.Item("ItemName").Editable = False
+
+
+            oGrid.Columns.Item("Quantity").TitleObject.Caption = "Quantity"
+            oGrid.Columns.Item("Quantity").Editable = False
+            oGrid.Columns.Item("WhsCode").TitleObject.Caption = "Warehouse"
+            oGrid.Columns.Item("WhsCode").Editable = False
+            oEditTextColumn = oGrid.Columns.Item("WhsCode")
+            oEditTextColumn.LinkedObjectType = "64"
+            oGrid.Columns.Item("Price").TitleObject.Caption = "Sales Price"
+            oGrid.Columns.Item("Price").Editable = False
+            oGrid.Columns.Item("U_AVGCOST").TitleObject.Caption = "Avg.Cost"
+            oGrid.Columns.Item("U_AVGCOST").Editable = False
+
+            oGrid.Columns.Item("U_MARKUP").TitleObject.Caption = "MarkUp %"
+            oGrid.Columns.Item("U_MARKUP").Editable = False
+
             oGrid.Columns.Item("Select").Type = SAPbouiCOM.BoGridColumnType.gct_CheckBox
             oGrid.Columns.Item("Select").TitleObject.Caption = "Select"
-            oGrid.Columns.Item("Select").Editable = False
+            oGrid.Columns.Item("Select").Editable = True
             oGrid.AutoResizeColumns()
             oGrid.SelectionMode = SAPbouiCOM.BoMatrixSelect.ms_None
         End If
@@ -153,54 +150,60 @@
 
     End Sub
     Private Sub AddtoDocument(aform As SAPbouiCOM.Form)
-
+        oGrid = aform.Items.Item("9").Specific
         Dim oMatrix As SAPbouiCOM.Matrix
-        oCombobox = frm_SourceQuotation.Items.Item("3").Specific
-        If oCombobox.Selected.Value = "S" Then
-            oMatrix = frm_SourceQuotation.Items.Item("39").Specific
-            oMatrix.Clear()
-            frm_SourceQuotation.Select()
-            oGrid = aform.Items.Item("7").Specific
-            '  frm_SourceQuotation.Freeze(True)
-            For intRow As Integer = 0 To oGrid.DataTable.Rows.Count - 1
-                oCheck = oGrid.Columns.Item("Select")
-                If oCheck.IsChecked(intRow) Then
-                    If oMatrix.RowCount < 1 Then
-                        oMatrix.AddRow(1, -1)
-                    End If
-                    Dim strCode As String = oGrid.DataTable.GetValue("U_Z_GLAcc", intRow)
-                    oApplication.Utilities.SetMatrixValues(oMatrix, "2", oMatrix.RowCount, oGrid.DataTable.GetValue("U_Z_GLAcc", intRow))
-                    oApplication.Utilities.SetMatrixValues(oMatrix, "12", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("Total Cost", intRow))
-                    oApplication.Utilities.SetMatrixValues(oMatrix, "U_Z_EstDocNum", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("DocNum", intRow))
-                End If
-            Next
+        If frm_SourceQuotation.TypeEx = frm_GoodsIssue Then
+            oMatrix = frm_SourceQuotation.Items.Item("13").Specific
         Else
             oMatrix = frm_SourceQuotation.Items.Item("38").Specific
-            oMatrix.Clear()
-            frm_SourceQuotation.Select()
-            oGrid = aform.Items.Item("9").Specific
-            '  frm_SourceQuotation.Freeze(True)
-            For intRow As Integer = 0 To oGrid.DataTable.Rows.Count - 1
-                oCheck = oGrid.Columns.Item("Select")
-                If oCheck.IsChecked(intRow) Then
-                    If oMatrix.RowCount < 1 Then
-                        oMatrix.AddRow()
-                    End If
-                    oApplication.Utilities.SetMatrixValues(oMatrix, "1", oMatrix.RowCount, oGrid.DataTable.GetValue("U_Z_ItemCode", intRow))
-                    oApplication.Utilities.SetMatrixValues(oMatrix, "14", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("U_Z_Total", intRow))
-
-                End If
-            Next
         End If
 
-       
+        oMatrix.Clear()
+        frm_SourceQuotation.Select()
+        '  frm_SourceQuotation.Freeze(True)
+        For intRow As Integer = 0 To oGrid.DataTable.Rows.Count - 1
+            oCheck = oGrid.Columns.Item("Select")
+            If oCheck.IsChecked(intRow) Then
+                If oMatrix.RowCount < 1 Then
+                    oMatrix.AddRow()
+                End If
+                oApplication.Utilities.SetMatrixValues(oMatrix, "1", oMatrix.RowCount, oGrid.DataTable.GetValue("ItemCode", intRow))
+                'oApplication.Utilities.SetMatrixValues(oMatrix, "U_Z_Spec", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("U_Z_Spec", intRow))
+                'oApplication.Utilities.SetMatrixValues(oMatrix, "U_Z_EstDocNum", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("DocNum", intRow))
+                'oApplication.Utilities.SetMatrixValues(oMatrix, "U_Z_EstLineId", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("LineId", intRow))
+                If frm_SourceQuotation.TypeEx = frm_GoodsIssue Then
+                    oApplication.Utilities.SetMatrixValues(oMatrix, "9", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("Quantity", intRow))
+                Else
+                    oApplication.Utilities.SetMatrixValues(oMatrix, "11", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("Quantity", intRow))
+                End If
+
+                If frm_SourceQuotation.TypeEx = frm_GoodsIssue Then
+                    oApplication.Utilities.SetMatrixValues(oMatrix, "15", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("WhsCode", intRow))
+                Else
+                    oApplication.Utilities.SetMatrixValues(oMatrix, "24", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("WhsCode", intRow))
+                End If
+                'Try
+                '    oApplication.Utilities.SetMatrixValues(oMatrix, "163", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("Size", intRow))
+
+                'Catch ex As Exception
+
+                'End Try
+                Try
+                    oApplication.Utilities.SetMatrixValues(oMatrix, "14", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("Price", intRow))
+                Catch ex As Exception
+
+                End Try
+                'oApplication.Utilities.SetMatrixValues(oMatrix, "11", oMatrix.RowCount - 1, oGrid.DataTable.GetValue("U_Z_Qty", intRow))
+
+            End If
+        Next
         aform.Close()
         ' frm_SourceQuotation.Freeze(False)
     End Sub
 #Region "Item Event"
     Public Overrides Sub ItemEvent(ByVal FormUID As String, ByRef pVal As SAPbouiCOM.ItemEvent, ByRef BubbleEvent As Boolean)
         Try
-            If pVal.FormTypeEx = frm_BoM_Wizard Then
+            If pVal.FormTypeEx = frm_BoM_Wizard_PO Then
                 Select Case pVal.BeforeAction
                     Case True
                         Select Case pVal.EventType
@@ -212,14 +215,6 @@
                                     oGrid = oForm.Items.Item(pVal.ItemUID).Specific
                                     oComboColumn = oGrid.Columns.Item("U_Z_SlpCode")
                                     oobj.LoadForm_View(oGrid.DataTable.GetValue("DocNum", pVal.Row), oComboColumn.GetSelectedValue(pVal.Row).Value)
-                                    BubbleEvent = False
-                                    Exit Sub
-                                End If
-
-                                If pVal.ItemUID = "9" And pVal.ColUID = "U_Z_ItemCode" Then
-                                    oGrid = oForm.Items.Item("9").Specific
-                                    Dim oobj As New clsProjectPhase
-                                    oobj.LoadForm_View(oGrid.DataTable.GetValue("U_Z_ItemCode", pVal.Row))
                                     BubbleEvent = False
                                     Exit Sub
                                 End If
@@ -312,7 +307,7 @@
     Private Function Validation(ByVal oForm As SAPbouiCOM.Form) As Boolean
         Try
             Dim strFBank, strTBank As String
-           
+
             Return True
         Catch ex As Exception
             oApplication.Utilities.Message(ex.Message, SAPbouiCOM.BoStatusBarMessageType.smt_Error)

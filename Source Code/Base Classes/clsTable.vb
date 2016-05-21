@@ -61,7 +61,7 @@ Public NotInheritable Class clsTable
         Dim oUserFieldMD As SAPbobsCOM.UserFieldsMD
         Try
 
-            If Not (strTab = "OITM" Or strTab = "OITM" Or strTab = "OADM" Or strTab = "QUT1" Or strTab = "OUSR" Or strTab = "OITW" Or strTab = "RDR1" Or strTab = "DSC1" Or strTab = "OPRJ") Then
+            If Not (strTab = "OITM" Or strTab = "OWOR" Or strTab = "OADM" Or strTab = "QUT1" Or strTab = "OUSR" Or strTab = "OITW" Or strTab = "RDR1" Or strTab = "DSC1" Or strTab = "OPRJ") Then
                 strTab = "@" + strTab
             End If
 
@@ -380,12 +380,15 @@ Public NotInheritable Class clsTable
         Try
 
             oApplication.SBO_Application.StatusBar.SetText("Initializing Database...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-            oApplication.Company.StartTransaction()
+            '  oApplication.Company.StartTransaction()
             '---- User Defined Fields
 
             'Project Estimation Reference Tables
             AddTables("Z_PRES", "Project Estimation Reference", SAPbobsCOM.BoUTBTableType.bott_NoObject)
             AddFields("Z_PRES", "Z_Type", "DocType", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+
+            AddTables("Z_PRES1", "Project  Second Level Ref", SAPbobsCOM.BoUTBTableType.bott_NoObject)
+            AddFields("Z_PRES1", "Z_Type", "DocType", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
 
             'SubProject
             AddTables("Z_OSUP", "Sub_Project", SAPbobsCOM.BoUTBTableType.bott_Document)
@@ -394,10 +397,15 @@ Public NotInheritable Class clsTable
             AddFields("Z_OSUP", "Z_GLAcc", "G/L Account", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
             AddFields("Z_OSUP", "Z_GLName", "G/L Account Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
 
+            AddFields("Z_OSUP", "Z_PrjCode", "Project Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            AddFields("Z_OSUP", "Z_CardCode", "Customer Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            AddFields("Z_OSUP", "Z_CardName", "Customer Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+
             'Project Phase 
             AddTables("Z_OPRPH", "Project Phase ", SAPbobsCOM.BoUTBTableType.bott_Document)
             AddTables("Z_PRPH1", "Project Phase Lines", SAPbobsCOM.BoUTBTableType.bott_DocumentLines)
             AddTables("Z_PRPH2", "Project Phase BOM Child", SAPbobsCOM.BoUTBTableType.bott_NoObject)
+            AddTables("Z_PRPH3", "Project Phase Second Level", SAPbobsCOM.BoUTBTableType.bott_NoObject)
 
 
             AddFields("Z_OPRPH", "Z_Code", "Project Phase Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
@@ -407,8 +415,14 @@ Public NotInheritable Class clsTable
             addField("@Z_OPRPH", "Z_Active", "Active", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "Y,N", "Yes,No", "Y")
             AddFields("Z_OPRPH", "Z_Remarks", "Remarks", SAPbobsCOM.BoFieldTypes.db_Memo)
             AddFields("Z_OPRPH", "Z_UnitPrice", "Unit Price", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            Me.AddFields("Z_OPRPH", "Z_ItemCode", "BoM Item Code", SAPbobsCOM.BoFieldTypes.db_Alpha, 0, 20, SAPbobsCOM.BoFldSubTypes.st_None, SAPbobsCOM.BoYesNoEnum.tNO)
+            Me.AddFields("Z_OPRPH", "Z_ItemName", "BoM Item Name", SAPbobsCOM.BoFieldTypes.db_Alpha, 0, 200, SAPbobsCOM.BoFldSubTypes.st_None, SAPbobsCOM.BoYesNoEnum.tNO)
+            AddFields("Z_OPRPH", "Z_PrjCode", "Project Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            AddFields("Z_OPRPH", "Z_CardCode", "Customer Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            AddFields("Z_OPRPH", "Z_CardName", "Customer Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
 
 
+            addField("@Z_PRPH1", "Z_Type", "Item Type", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "4,290", "Item,Resource", "4")
             AddFields("Z_PRPH1", "Z_ItemCode", "BoM Item Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
             AddFields("Z_PRPH1", "Z_ItemName", "BoM Item Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
             AddFields("Z_PRPH1", "Z_BaseQty", "Base Quantity", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Quantity)
@@ -432,6 +446,25 @@ Public NotInheritable Class clsTable
             AddFields("Z_PRPH2", "Z_RItemCode", "Project Phase Item", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
             AddFields("Z_PRPH2", "Z_RItemName", "Project Phase ItemName", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
             AddFields("Z_PRPH2", "Z_PHRef", "Project Phase BOM Reference", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            AddFields("Z_PRPH2", "Z_PHSRef", "Phase second  Reference", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+
+
+            addField("@Z_PRPH3", "Z_Type", "Item Type", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "4,290", "Item,Resource", "4")
+            AddFields("Z_PRPH3", "Z_ItemCode", "BoM Item Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            AddFields("Z_PRPH3", "Z_ItemName", "BoM Item Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            AddFields("Z_PRPH3", "Z_BaseQty", "Base Quantity", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Quantity)
+            AddFields("Z_PRPH3", "Z_Cost", "Base Cost", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            AddFields("Z_PRPH3", "Z_WhsCode", "Warehouse Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            AddFields("Z_PRPH3", "Z_UoM", "UoM Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            AddFields("Z_PRPH3", "Z_PlnList", "Price List", SAPbobsCOM.BoFieldTypes.db_Alpha, , 2)
+            AddFields("Z_PRPH3", "Z_TotalCost", "Total Cost", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            AddFields("Z_PRPH3", "Z_Remarks", "Remarks", SAPbobsCOM.BoFieldTypes.db_Memo)
+            AddFields("Z_PRPH3", "Z_RItemCode", "Project Phase Item", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            AddFields("Z_PRPH3", "Z_RItemName", "Project Phase ItemName", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            AddFields("Z_PRPH3", "Z_PHRef", "Phase BOM Reference", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            ' AddFields("Z_PRPH2", "Z_PHSRef", "Project Phase second BOM Reference", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+
+
 
             'Approval Template
 
@@ -468,27 +501,10 @@ Public NotInheritable Class clsTable
             AddFields("P_APHIS", "Z_ALineId", "Template LineId", SAPbobsCOM.BoFieldTypes.db_Numeric)
 
 
-            'Estimation Related 
-            ''  AddFields("OITT", "Z_BoMRef", "BoM Reference", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
-            'AddTables("Z_OITT", "Summary Details", SAPbobsCOM.BoUTBTableType.bott_NoObject)
-            'AddFields("Z_OITT", "Z_ItemCode", "BoM ItemCode", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
-            'AddFields("Z_OITT", "Z_Type", "Item Type", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
-            'AddFields("Z_OITT", "Z_Cost", "Cost", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
-            'AddFields("Z_OITT", "Z_Markup", "Markup %", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Percentage)
-            'AddFields("Z_OITT", "Z_Price", "Sales Price", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
-            'AddFields("Z_OITT", "Z_AvgMarkUp", "Average markup", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Percentage)
-
-
-            'AddTables("Z_OITT1", "Estimation Summary Details", SAPbobsCOM.BoUTBTableType.bott_NoObject)
-            'AddFields("Z_OITT1", "Z_ItemCode", "DocNum", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
-            'AddFields("Z_OITT1", "Z_Type", "Item Type", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
-            'AddFields("Z_OITT1", "Z_Cost", "Cost", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
-            'AddFields("Z_OITT1", "Z_Markup", "Markup %", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Percentage)
-            'AddFields("Z_OITT1", "Z_Price", "Sales Price", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
-            'AddFields("Z_OITT1", "Z_AvgMarkUp", "Average markup", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Percentage)
-
+           
             AddTables("Z_OQUT", "Estimation Header", SAPbobsCOM.BoUTBTableType.bott_Document)
             AddTables("Z_QUT1", "Estimation Lines", SAPbobsCOM.BoUTBTableType.bott_DocumentLines)
+
             AddFields("Z_OQUT", "Z_PrjCode", "Project Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
             AddFields("Z_OQUT", "Z_PrjName", "Project Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
             AddFields("Z_OQUT", "Z_Desc", "Project Description", SAPbobsCOM.BoFieldTypes.db_Alpha, , 230)
@@ -507,6 +523,8 @@ Public NotInheritable Class clsTable
             addField("@Z_OQUT", "Z_AppRequired", "Approval Required", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "Y,N", "Yes,No", "N")
             AddFields("Z_OQUT", "Z_TotalCost", "Total Cost", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
             AddFields("Z_OQUT", "Z_GLAcc", "G/L Account", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            AddFields("Z_OQUT", "Z_AppID", "Template ID", SAPbobsCOM.BoFieldTypes.db_Alpha, , 10)
+            AddFields("Z_OQUT", "Z_RevNo", "Revision Number ID", SAPbobsCOM.BoFieldTypes.db_Alpha, 0, 30, SAPbobsCOM.BoFldSubTypes.st_None, SAPbobsCOM.BoYesNoEnum.tNO)
 
             AddFields("Z_QUT1", "Z_ItemCode", "Item Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
             AddFields("Z_QUT1", "Z_ItemDesc", "Item Description", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
@@ -515,10 +533,11 @@ Public NotInheritable Class clsTable
             AddFields("Z_QUT1", "Z_Price", "Unit Price", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
             AddFields("Z_QUT1", "Z_Margin", "Margin %", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Percentage)
             AddFields("Z_QUT1", "Z_Total", "Total Amount", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            AddFields("Z_QUT1", "Z_PONO", "Production Order No ", SAPbobsCOM.BoFieldTypes.db_Memo)
             'AddFields("QUT1", "Z_Spec", "Specification", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
             AddFields("QUT1", "Z_EstDocNum", "Estimation Base Number", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
             AddFields("QUT1", "Z_EstLineId", "Estimation Base Line", SAPbobsCOM.BoFieldTypes.db_Alpha, , 10)
-
+            AddFields("Z_QUT1", "Z_SubPrjCode", "Sub Project Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
 
             AddTables("Z_QUT2", "Estimation Attachments", SAPbobsCOM.BoUTBTableType.bott_DocumentLines)
             AddFields("Z_QUT2", "FileName", "File Name", SAPbobsCOM.BoFieldTypes.db_Memo)
@@ -529,20 +548,113 @@ Public NotInheritable Class clsTable
             AddFields("Z_QUT3", "Z_Text1", "Free Text1", SAPbobsCOM.BoFieldTypes.db_Memo)
             AddFields("Z_QUT3", "Z_Text2", "Free Text2", SAPbobsCOM.BoFieldTypes.db_Memo)
 
-            AddFields("OPRJ", "Z_CardCode", "Customer Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
-            AddFields("OPRJ", "Z_CardName", "Customer Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            AddFields("OPRJ", "Z_CARDCODE", "Customer Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            AddFields("OPRJ", "Z_CARDNAME", "Customer Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+
+
+            AddFields("OWOR", "Z_PrjCode", "Project Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            AddFields("OWOR", "Z_SubPrj", "Sub Project Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            AddFields("OWOR", "Z_Phase", "Phase", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            AddFields("OWOR", "Z_EstNo", "Estimation Number", SAPbobsCOM.BoFieldTypes.db_Alpha, , 10)
+
+            'Project Budget Creation - Project Mgmt Addon Tables
+
+            'AddTables("Z_HPRJ", "Project Budeget Header", SAPbobsCOM.BoUTBTableType.bott_Document)
+            'AddTables("Z_PRJ1", "Project Budeget-Modules", SAPbobsCOM.BoUTBTableType.bott_DocumentLines)
+
+
+            'AddFields("Z_HPRJ", "Z_PRJCODE", "Project Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            'AddFields("Z_HPRJ", "Z_PRJNAME", "Project Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'AddFields("Z_HPRJ", "Z_BUDGET", "Project Budgets in hours", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            'AddFields("Z_HPRJ", "Z_FromDate", "Start Date of Project", SAPbobsCOM.BoFieldTypes.db_Date)
+            'AddFields("Z_HPRJ", "Z_ToDate", "End Date of Project", SAPbobsCOM.BoFieldTypes.db_Date)
+            'addField("@Z_HPRJ", "Z_Status", "Status", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "E,X,I,H,C", "Estimation,Execution,In Process,On Hold,Completed", "E")
+            'AddFields("Z_HPRJ", "Z_TotalExpense", "Total Estimated Expenses", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            'addField("@Z_HPRJ", "Z_Approval", "Timesheet approval requires", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "Y,N", "Yes,No", "N")
+            'AddFields("Z_HPRJ", "Z_CustCntID", "Customer Contract ID", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            'AddFields("Z_HPRJ", "Z_EmpID", "Delivery Manager", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            'AddFields("Z_HPRJ", "Z_EMPNAME", "Delivery Manager Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'addField("@Z_HPRJ", "Z_Internal", "Internal Project", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "Y,N", "Yes,No", "N")
+
+            'AddFields("Z_HPRJ", "Z_TotHours", "Total Hours", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            'AddFields("Z_HPRJ", "Z_TotCost", "Total Estimated Cost", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            'AddFields("Z_HPRJ", "Z_SlpCode", "Sales Person Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            'AddFields("Z_HPRJ", "Z_SlpName", "Sales Person Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+
+
+
+            'AddFields("Z_PRJ1", "Z_ModName", "Phase Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            'AddFields("Z_PRJ1", "Z_ActName", "Activity Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            'AddFields("Z_PRJ1", "Z_Days", "Estimated Days", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            'AddFields("Z_PRJ1", "Z_Hours", "Estimated Hours", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            'AddFields("Z_PRJ1", "Z_EmpID", "Employee ID", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            'AddFields("Z_PRJ1", "Z_Position", "Position", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'addField("@Z_PRJ1", "Z_Order", "Sales Order", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "Y,N", "Yes,No", "N")
+            'AddFields("Z_PRJ1", "Z_OrdEntry", "Sales Order Entry", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            'AddFields("Z_PRJ1", "Z_OrdNum", "Sales Order Number", SAPbobsCOM.BoFieldTypes.db_Numeric)
+            'AddFields("Z_PRJ1", "Z_Amount", "Estimated Cost", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            'addField("@Z_PRJ1", "Z_Status", "Activity Status", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "I,P,C", "In Process,Pending,Completed", "P")
+            ''addField("@Z_PRJ1", "Z_Status", "Status", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "E,X,I,H,C", "Estimation,Execution,In Process,On Hold,Completed", "I")
+            'AddFields("Z_PRJ1", "Z_FromDate", "From Date", SAPbobsCOM.BoFieldTypes.db_Date)
+            'AddFields("Z_PRJ1", "Z_ToDate", "End Date", SAPbobsCOM.BoFieldTypes.db_Date)
+            'AddFields("Z_PRJ1", "Z_Quantity", "Quantity", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Quantity)
+            'AddFields("Z_PRJ1", "Z_Measure", "Measure", SAPbobsCOM.BoFieldTypes.db_Alpha, , 250)
+            'AddFields("Z_PRJ1", "Z_CmpDate", "Completion Date", SAPbobsCOM.BoFieldTypes.db_Date)
+            'AddFields("Z_PRJ1", "Z_BOQ", "BOQ RefNumber", SAPbobsCOM.BoFieldTypes.db_Alpha, , 8)
+            'addField("@Z_PRJ1", "Z_Type", "Activity Type", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "I,R,E", "Item,Resource,Expenses", "R")
+            'AddFields("Z_PRJ1", "Z_ExpType", "Expense Type", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'AddFields("Z_PRJ1", "Z_CntID", "Contract ID", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            'AddFields("Z_PRJ1", "Z_CustCntID", "Customer Contract ID", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+
+
+            'AddTables("Z_PRJ2", "Bill of Quantity Details", SAPbobsCOM.BoUTBTableType.bott_NoObject)
+            'AddFields("Z_PRJ2", "Z_PRJCODE", "Project Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            'AddFields("Z_PRJ2", "Z_PRJNAME", "Project Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'AddFields("Z_PRJ2", "Z_ModName", "Phase Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            'AddFields("Z_PRJ2", "Z_ActName", "Activity Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            'AddFields("Z_PRJ2", "Z_BOQRef", "BOQ Reference Number", SAPbobsCOM.BoFieldTypes.db_Alpha, , 8)
+            'AddFields("Z_PRJ2", "Z_Status", "Status", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            'AddFields("Z_PRJ2", "Z_ItemCode", "Item Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            'AddFields("Z_PRJ2", "Z_ItemName", "Item Description", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'AddFields("Z_PRJ2", "Z_UOM", "Item UOM", SAPbobsCOM.BoFieldTypes.db_Alpha, , 50)
+            'AddFields("Z_PRJ2", "Z_ReqQty", "Required Quantity", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Quantity)
+            'AddFields("Z_PRJ2", "Z_EstCost", "Estimated Cost", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Sum)
+            'AddFields("Z_PRJ2", "Z_ReqDate", "Required Date", SAPbobsCOM.BoFieldTypes.db_Date)
+            'AddFields("Z_PRJ2", "Z_Vendor", "Vendor Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            'AddFields("Z_PRJ2", "Z_VendorName", "Vendorname", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'AddFields("Z_PRJ2", "Z_Comments", "Comments", SAPbobsCOM.BoFieldTypes.db_Alpha, , 250)
+            'AddFields("Z_PRJ2", "Z_UnitPrice", "Unit Price", SAPbobsCOM.BoFieldTypes.db_Float, , , SAPbobsCOM.BoFldSubTypes.st_Price)
+            'AddFields("Z_PRJ2", "Z_DocEntry", "Purchase Request Number", SAPbobsCOM.BoFieldTypes.db_Numeric)
+            'AddFields("Z_PRJ2", "Z_DocNum", "Purchae Request DocNum", SAPbobsCOM.BoFieldTypes.db_Alpha, , 20)
+            'addField("@Z_PRJ2", "Z_PR", "Create Purchase Request", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "Y,N", "Yes,No", "N")
+            'AddFields("Z_PRJ2", "Z_CntID", "Contract ID", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+            'AddFields("Z_PRJ2", "Z_Position", "Position", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'AddFields("Z_PRJ2", "Z_CustCntID", "Customer Contract ID", SAPbobsCOM.BoFieldTypes.db_Alpha, , 100)
+
+
+            'AddTables("Z_PRJ3", "Project Attachments", SAPbobsCOM.BoUTBTableType.bott_DocumentLines)
+            'AddFields("Z_PRJ3", "Z_FilePath", "File Path", SAPbobsCOM.BoFieldTypes.db_Memo)
+            'AddFields("Z_PRJ3", "Z_FileName", "File Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+
+
+            'AddFields("OPRJ", "Z_CardCode", "Customer Code", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            'AddFields("OPRJ", "Z_CardName", "Customer Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'AddFields("OPRJ", "Z_EmpID", "Delivery Manager", SAPbobsCOM.BoFieldTypes.db_Alpha, , 30)
+            'AddFields("OPRJ", "Z_EMPNAME", "Delivery Manager Name", SAPbobsCOM.BoFieldTypes.db_Alpha, , 200)
+            'addField("OPRJ", "Z_INTERNAL", "Internal Project", SAPbobsCOM.BoFieldTypes.db_Alpha, 1, SAPbobsCOM.BoFldSubTypes.st_Address, "Y,N", "Yes,No", "N")
+
 
             '---- User Defined Object
             CreateUDO()
 
-            If oApplication.Company.InTransaction() Then
-                oApplication.Company.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_Commit)
-            End If
+            'If oApplication.Company.InTransaction() Then
+            '    oApplication.Company.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_Commit)
+            'End If
             oApplication.SBO_Application.StatusBar.SetText("Database creation completed...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
         Catch ex As Exception
-            If oApplication.Company.InTransaction() Then
-                oApplication.Company.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_RollBack)
-            End If
+            'If oApplication.Company.InTransaction() Then
+            '    oApplication.Company.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_RollBack)
+            'End If
             Throw ex
         Finally
             GC.Collect()
@@ -556,6 +668,8 @@ Public NotInheritable Class clsTable
             AddUDO("P_APHIS", "Approval History", "P_APHIS", "DocEntry", "U_Z_DocEntry", , , , SAPbobsCOM.BoUDOObjType.boud_Document, True, "AP_APHIS")
             AddUDO("P_OAPPT", "Approval Template", "P_OAPPT", "DocEntry", "U_Z_Code", "P_APPT1", "P_APPT2", , SAPbobsCOM.BoUDOObjType.boud_Document)
             AddUDO("P_OQUT", "Project_Estimation", "Z_OQUT", "DocEntry", "U_Z_PrjCode", "Z_QUT1", "Z_QUT2", "Z_QUT3", SAPbobsCOM.BoUDOObjType.boud_Document)
+
+            ' AddUDO("Z_PRJ", "Project Budget-Details", "Z_HPRJ", "U_Z_PRJCODE", "U_Z_PRJNAME", "Z_PRJ1", "Z_PRJ3", , SAPbobsCOM.BoUDOObjType.boud_Document)
 
             'Update UDO
 

@@ -258,12 +258,12 @@ Public Class Custom_ChooseFromList
             oMatrix.Columns.Item("3").DataBind.SetBound(True, "@REN_ORDR", "U_CardName")
             oMatrix.Columns.Item("4").DataBind.SetBound(True, "@REN_ORDR", "U_Remarks")
 
-            strSQL = "Select T1.DocEntry, U_PostDt, U_CardName, U_Remarks " & _
-                        "From [@REN_ORDR] T1 " & _
-                        "Inner Join [@REN_RDR1] T2 On T2.DocEntry = T1.DocEntry " & _
-                        "Where U_Status = 'R' And T2.U_ItemCode Is Not NULL And T2.U_ReqdQty > T2.U_RetQty And U_CardCode = '" & CardCode & "' " & _
-                        "Group By T1.DocEntry, U_PostDt, U_CardName, U_Remarks " & _
-                        "Order By T1.DocEntry "
+            strSQL = "Select T1.""DocEntry"", ""U_PostDt"", ""U_CardName"", ""U_Remarks"" " & _
+                        "From ""@REN_ORDR"" T1 " & _
+                        "Inner Join ""@REN_RDR1"" T2 On T2.""DocEntry"" = T1.""DocEntry"" " & _
+                        "Where ""U_Status"" = 'R' And T2.""U_ItemCode"" Is Not NULL And T2.""U_ReqdQty"" > T2.""U_RetQty"" And ""U_CardCode"" = '" & CardCode & "' " & _
+                        "Group By T1.""DocEntry"", ""U_PostDt"", ""U_CardName"", ""U_Remarks"" " & _
+                        "Order By T1.""DocEntry"" "
             oApplication.Utilities.ExecuteSQL(rsOrders, strSQL)
 
             While Not rsOrders.EoF

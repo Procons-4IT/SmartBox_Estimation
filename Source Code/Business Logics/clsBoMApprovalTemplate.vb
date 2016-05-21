@@ -443,12 +443,12 @@
             strQuery = "Select ""DocEntry"" From ""@P_OAPPT"""
             strQuery += " Where "
             strQuery += " ""U_Z_DocType"" = '" & oComboBox.Selected.Value & "' And ""DocEntry"" <> '" & oApplication.Utilities.getEditTextvalue(aForm, "12") & "'"
-            oRecordSet.DoQuery(strQuery)
-            If Not oRecordSet.EoF Then
-                oApplication.Utilities.Message("Document Type Already Exist...", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                aForm.Freeze(False)
-                Return False
-            End If
+            ' oRecordSet.DoQuery(strQuery)
+            'If Not oRecordSet.EoF Then
+            '    '  oApplication.Utilities.Message("Document Type Already Exist...", SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+            '    '  aForm.Freeze(False)
+            '    '  Return False
+            'End If
 
 
             oMatrix = aForm.Items.Item("10").Specific

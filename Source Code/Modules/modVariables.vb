@@ -7,12 +7,15 @@ Public Module modVariables
     Public CompanyThousandSeprator As String
     Public frmSourceMatrix As SAPbouiCOM.Matrix
     Public frm_SourceBoM As SAPbouiCOM.Form
+    Public frm_SourceBoM1 As SAPbouiCOM.Form
     Public frm_SourceQuotation As SAPbouiCOM.Form
     Public sPath, strSelectedFilepath, strSelectedFolderPath As String
     Public frm_SourceProjectPhase As SAPbouiCOM.Form
+    Public frm_SourceProjectPhase1 As SAPbouiCOM.Form
     Public frm_ProjectPhaseRow As Integer = 0
+    Public frm_ProjectPhaseRow1 As Integer = 0
     Public blnIsHana As Boolean = False
-
+  
 
     Public Enum ValidationResult As Integer
         CANCEL = 0
@@ -78,6 +81,9 @@ Public Module modVariables
     Public Const frm_BOMRef As String = "Z_PRPH2"
     Public Const xml_BOMRef As String = "Z_PRPH2.xml"
 
+    Public Const frm_BOMRef1 As String = "Z_PRPH3"
+    Public Const xml_BOMRef1 As String = "Z_PRPH3.xml"
+
     Public Const mnu_ProjectEstimation As String = "Menu_P04"
     Public Const frm_Estimation As String = "Z_OQUT"
     Public Const xml_Estimation As String = "Z_OQUT.xml"
@@ -103,5 +109,13 @@ Public Module modVariables
 
     Public Const frm_AppHisDetails As String = "frm_AppHisDetails"
     Public Const xml_AppHisDetails As String = "xml_AppHisDetails.xml"
+
+    Public Const mnu_POWizard As String = "Menu_P07"
+    Public Const frm_PO_Wizard As String = "frm_P015"
+    Public Const xml_PO_Wizard As String = "xml_POWizard.xml"
+
+    Public Const mnu_PBWizard As String = "Menu_P06"
+    Public Const frm_PBWizar As String = "frm_P016"
+    Public Const xml_PBWizar As String = "xml_PBWizard.xml"
 
 End Module
